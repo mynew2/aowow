@@ -5,17 +5,19 @@ if (!defined('AOWOW_REVISION'))
 
 class ItemList extends BaseType
 {
-    public    $tooltip    = '';
-    public    $json       = [];
-    public    $itemMods   = [];
+    public static $type       = TYPE_ITEM;
 
-    public    $rndEnchIds = [];
-    public    $subItems   = [];
+    public        $tooltip    = '';
+    public        $json       = [];
+    public        $itemMods   = [];
 
-    private   $ssd        = [];
+    public        $rndEnchIds = [];
+    public        $subItems   = [];
 
-    protected $setupQuery = 'SELECT *, i.entry AS ARRAY_KEY FROM item_template i LEFT JOIN ?_item_template_addon iX ON i.entry = iX.id LEFT JOIN locales_item l ON i.entry = l.entry WHERE [filter] [cond] ORDER BY i.Quality DESC';
-    protected $matchQuery = 'SELECT COUNT(1) FROM item_template i LEFT JOIN ?_item_template_addon iX ON i.entry = iX.id LEFT JOIN locales_item l ON i.entry = l.entry WHERE [filter] [cond]';
+    private       $ssd        = [];
+
+    protected     $setupQuery = 'SELECT *, i.entry AS ARRAY_KEY FROM item_template i LEFT JOIN ?_item_template_addon iX ON i.entry = iX.id LEFT JOIN locales_item l ON i.entry = l.entry WHERE [filter] [cond] ORDER BY i.Quality DESC';
+    protected     $matchQuery = 'SELECT COUNT(1) FROM item_template i LEFT JOIN ?_item_template_addon iX ON i.entry = iX.id LEFT JOIN locales_item l ON i.entry = l.entry WHERE [filter] [cond]';
 
     public function __construct($conditions, $pieceToSet = null)
     {
@@ -148,7 +150,7 @@ class ItemList extends BaseType
             {"source":[5],"sourcemore":[{"n":"Commander Oxheart","t":1,"ti":64606,"z":5842}],
 
             cost:[]     format unk 0:copper, 1:[items]? 2, 3, 4, 5
-            stack       [unk, unk]
+            stack       [min, max]  // when looting
             avail       unk
             rel         unk
             glyph       major | minor (as id)
@@ -159,18 +161,15 @@ class ItemList extends BaseType
         return $data;
     }
 
-    public function addGlobalsToJscript(&$refs)
+    public function addGlobalsToJscript(&$template, $addMask = 0)
     {
-        if (!isset($refs['gItems']))
-            $refs['gItems'] = [];
-
         while ($this->iterate())
         {
-            $refs['gItems'][$this->id] = array(
+            $template->extendGlobalData(self::$type, [$this->id => array(
                 'name'    => $this->getField('name', true),
                 'quality' => $this->curTpl['Quality'],
-                'icon'    => $this->curTpl['icon'],
-            );
+                'icon'    => $this->curTpl['icon']
+            )]);
         }
     }
 
@@ -235,7 +234,7 @@ class ItemList extends BaseType
         // requires map (todo: reparse ?_zones for non-conflicting data; generate Link to zone)
         if ($this->curTpl['Map'])
         {
-            $map = DB::Aowow()->selectRow('SELECT * FROM ?_zones WHERE mapid=?d LIMIT 1', $this->curTpl['Map']);
+            $map = DB::Aowow()->selectRow('SELECT * FROM ?_zones WHERE mapId=?d LIMIT 1', $this->curTpl['Map']);
             $x .= '<br />'.Util::localizedString($map, 'name');
         }
 
@@ -349,13 +348,13 @@ class ItemList extends BaseType
 
         // Armor
         if ($this->curTpl['class'] == ITEM_CLASS_ARMOR && $this->curTpl['ArmorDamageModifier'] > 0)
-            $x .= '<span class="q2"><!--addamr'.$this->curTpl['ArmorDamageModifier'].'--><span>'.($this->curTpl['armor'] + $this->curTpl['ArmorDamageModifier']).' '.Lang::$item['armor'].'</span></span><br />';
+            $x .= '<span class="q2"><!--addamr'.$this->curTpl['ArmorDamageModifier'].'--><span>'.sprintf(Lang::$item['armor'], $this->curTpl['armor'] + $this->curTpl['ArmorDamageModifier']).'</span></span><br />';
         else if ($this->curTpl['armor'])
-            $x .= '<span><!--amr-->'.$this->curTpl['armor'].' '.Lang::$item['armor'].'</span><br />';
+            $x .= '<span><!--amr-->'.sprintf(Lang::$item['armor'], $this->curTpl['armor']).'</span><br />';
 
         // Block
         if ($this->curTpl['block'])
-            $x .= '<span>'.$this->curTpl['block'].' '.Lang::$item['block'].'</span><br />';
+            $x .= '<span>'.sprintf(Lang::$item['block'], $this->curTpl['block']).'</span><br />';
 
         // Item is a gem (don't mix with sockets)
         if ($this->curTpl['GemProperties'])
@@ -446,7 +445,7 @@ class ItemList extends BaseType
             $pop       = array_pop($enhance['gems']);
             $col       = $pop ? 1 : 0;
             $hasMatch &= $pop ? (($gems[$pop]['colorMask'] & (1 << $colorId)) ? 1 : 0) : 0;
-            $icon      = $pop ? sprintf(Util::$bgImagePath['tiny'], strtolower($gems[$pop]['icon'])) : null;
+            $icon      = $pop ? sprintf(Util::$bgImagePath['tiny'], STATIC_URL, strtolower($gems[$pop]['icon'])) : null;
             $text      = $pop ? Util::localizedString($gems[$pop], 'text') : Lang::$item['socket'][$colorId];
 
             if ($interactive)
@@ -460,7 +459,7 @@ class ItemList extends BaseType
         {
             $pop  = array_pop($enhance['gems']);
             $col  = $pop ? 1 : 0;
-            $icon = $pop ? sprintf(Util::$bgImagePath['tiny'], strtolower($gems[$pop]['icon'])) : null;
+            $icon = $pop ? sprintf(Util::$bgImagePath['tiny'], STATIC_URL, strtolower($gems[$pop]['icon'])) : null;
             $text = $pop ? Util::localizedString($gems[$pop], 'text') : Lang::$item['socket'][-1];
 
             if ($interactive)
@@ -524,34 +523,9 @@ class ItemList extends BaseType
             $x .= '<br />'.sprintf(Lang::$game['requires'], '<a class="q1" href=?faction="'.$this->curTpl['RequiredReputationFaction'].'">'.Faction::getName($this->curTpl['RequiredReputationFaction']).'</a> - '.Lang::$game['rep'][$this->curTpl['RequiredReputationRank']]);
 
         // locked
-        if ($this->curTpl['lockid'])
-        {
-            $lock = DB::Aowow()->selectRow('
-                SELECT
-                    *
-                FROM
-                    ?_lock
-                WHERE
-                    lockID = ?d',
-                $this->curTpl['lockid']
-            );
-            // only use first useful entry
-            for ($j = 1; $j <= 5; $j++)
-            {
-                if ($lock['type'.$j] == 1)                  // opened by item
-                {
-                    $l = sprintf(Lang::$game['requires'], '<a class="q1" href="?item='.$lock['lockproperties'.$j].'">'.Util::getItemName($lock['lockproperties'.$j]).'</a>');
-                    break;
-                }
-                else if ($lock['type'.$j] == 2)             // opened by skill
-                {
-                    $lockText = DB::Aowow()->selectRow('SELECT ?# FROM ?_locktype WHERE id = ?d', $lock['lockproperties'.$j]);
-                    $l = sprintf(Lang::$game['requires'], Util::localizedString($lockText, 'name').' ('.$lock['requiredskill'.$j].')');
-                    break;
-                }
-            }
-            $x .= '<br /><span class="q0">'.Lang::$item['locked'].'<br />'.$l.'</span>';
-        }
+        if ($lId = $this->curTpl['lockid'])
+            if ($locks = Lang::getLocks($lId))
+                $x .= '<br /><span class="q0">'.Lang::$item['locked'].'<br />'.implode('<br />', $locks).'</span>';
 
         // upper table: done
         if (!$subT)
@@ -611,7 +585,7 @@ class ItemList extends BaseType
 
             if ($itemset['skillId'])                        // bonus requires skill to activate
             {
-                $name  = DB::Aowow()->selectRow('SELECT * FROM ?_skill WHERE skillId=?d', $itemset['skillId']);
+                $name  = DB::Aowow()->selectRow('SELECT * FROM ?_skillline WHERE Id=?d', $itemset['skillId']);
                 $xSet .= '<br />'.sprintf(Lang::$game['requires'], '<a href="?skills='.$itemset['skillId'].'" class="q1">'.Util::localizedString($name, 'name').'</a>');
 
                 if ($itemset['skillLevel'])
@@ -819,10 +793,15 @@ class ItemList extends BaseType
         // convert ItemMods
         for ($h = 1; $h <= 10; $h++)
         {
-            if (!$this->curTpl['stat_type'.$h])
+            $mod = $this->curTpl['stat_type'.$h];
+            $val = $this->curTpl['stat_value'.$h];
+            if (!$mod ||!$val)
                 continue;
 
-            @$this->itemMods[$this->id][$this->curTpl['stat_type'.$h]] += $this->curTpl['stat_value'.$h];
+            if ($mod == ITEM_MOD_ATTACK_POWER)
+                @$this->itemMods[$this->id][ITEM_MOD_RANGED_ATTACK_POWER] += $val;
+
+            @$this->itemMods[$this->id][$mod] += $val;
         }
 
         // convert Spells
@@ -855,7 +834,7 @@ class ItemList extends BaseType
                 $this->json[$this->id]['socketbonusstat'] = Util::parseItemEnchantment($enh);
 
         // gather random Enchantments
-        // todo: !important! extremly high sql-load
+        // todo (high): extremly high sql-load
         if (@$this->json[$this->id]['commondrop'] && isset($this->subItems[$this->id]))
         {
             foreach ($this->subItems[$this->id] as $k => $sI)
@@ -913,10 +892,6 @@ class ItemList extends BaseType
             return Lang::$item['trigger'][1] . str_replace('%d', '<!--rtg'.$type.'-->'.$value, Lang::$item['statType'][$type]);
         else                                                // rating-Bonuses
         {
-            // old
-            // $js = '&nbsp;<small>(<a href="javascript:;" onmousedown="return false" onclick="g_setRatingLevel(this,'.$level.','.$type.','.$value.')">';
-            // $js .= Util::setRatingLevel($level, $type, $value);
-            // $js .= '</a>)</small>';
             if ($interactive)
                 $js = '&nbsp;<small>('.sprintf(Util::$changeLevelString, Util::setRatingLevel($level, $type, $value)).')</a>)</small>';
             else

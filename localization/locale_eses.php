@@ -12,6 +12,7 @@ if (!defined('AOWOW_REVISION'))
 $lang = array(
     // page variables
     'main' => array(
+        'name'          => "Nombre",
         'link'          => "Enlace",
         'signIn'        => "Iniciar sesión",
         'jsError'       => "Por favor, asegúrese de que ha habilitado javascript.",
@@ -21,7 +22,6 @@ $lang = array(
         'timeSQL'       => "El tiempo para las consultas de MySQL",
         'noJScript'     => "<b>Este sitio hace uso intenso de JavaScript.</b><br />Por favor <a href=\"https://www.google.com/support/adsense/bin/answer.py?answer=12654\" target=\"_blank\">habilita JavaScript</a> en tu navegador.",
         'profiles'      => "Tus personajes",    // translate.google :x
-        'links'         => "Enlaces",
         'pageNotFound'  => "Este %s no existe.",
         'gender'        => "Género",
         'sex'           => [null, 'Hombre', 'Mujer'],
@@ -62,11 +62,16 @@ $lang = array(
         'refineSearch'  => "Sugerencia: Refina tu búsqueda llendo a una <a href=\"javascript:;\" id=\"fi_subcat\">subcategoría</a>.",
 
         // infobox
-        'name'          => "Nombre",
+        'unavailable'   => "No está disponible a los jugadores",
         'disabled'      => "[Disabled]",
         'disabledHint'  => "[Cannot be attained or completed]",
         'serverside'    => "[Serverside]",
         'serversideHint' => "[These informations are not in the Client and have been provided by sniffing and/or guessing.]",
+
+        // red buttons
+        'links'         => "Enlaces",
+        'compare'       => "Comparar",
+        'view3D'        => "Ver en 3D"
     ),
     'search' => array(
         'search'        => "Búsqueda",
@@ -75,6 +80,8 @@ $lang = array(
         'tryAgain'      => "Por favor, introduzca otras palabras claves o verifique el término ingresado.",
     ),
     'game' => array(
+        'achievement'   => "logro",
+        'achievements'  => "Logros",
         'class'         => "clase",
         'classes'       => "Clases",
         'currency'      => "monedas",
@@ -82,6 +89,8 @@ $lang = array(
         'difficulty'    => "Dificultad",
         'dispelType'    => "Tipo de disipación",
         'duration'      => "Duración",
+        'gameObject'    => "entidad",
+        'gameObjects'   => "Entidades",
         'glyphType'     => "Tipo de glifo",
         'race'          => "raza",
         'races'         => "Razas",
@@ -97,6 +106,7 @@ $lang = array(
         'mechAbbr'      => "Mec.",
         'pet'           => "Mascota",
         'pets'          => "Mascotas de cazador",
+        'petCalc'       => "Calculadora de mascotas",
         'requires'      => "Requiere %s",
         'requires2'     => "Requiere",
         'reqLevel'      => "Necesitas ser de nivel %s",
@@ -106,7 +116,11 @@ $lang = array(
         'school'        => "Escuela",
         'spell'         => "hechizo",
         'spells'        => "Hechizos",
+        'type'          => "Tipo",
         'valueDelim'    => " - ",
+        'zone'          => "zona",
+        'zones'         => "Zonas",
+        'expansions'    => array("World of Warcraft", "The Burning Crusade", "Wrath of the Lich King"),
         'stats'         => array("Fuerza", "Agilidad", "Aguante", "Intelecto", "Espíritu"),
         'languages'     => array(
             1 => "Orco",        2 => "Darnassiano",     3 => "Taurahe",     6 => "Enánico",         7 => "Lengua común",    8 => "Demoníaco",       9 => "Titánico",        10 => "Thalassiano",
@@ -130,19 +144,21 @@ $lang = array(
             "Sigilo",           "Forma de lechúcico lunar",     "Espíritu redentor"
         ),
         'me'            => array(
-            null,               "Embelesado",           "Desorientado",             "Desarmado",            "Distraído",            "Huyendo",              "Agarrado",             "Enraizado",
-            "Pacificado",       "Silenciado",           "Dormido",                  "Frenado",              "Aturdido",             "Congelado",            "Incapacitado",         "Sangrando",
-            "Sanacíon",         "Polimorfado",          "Desterrado",               "Protegido",            "Aprisionado",          "Montado",              "Seducido",             "Girado",
-            "Horrorizado",      "Invulnerable",         "Interrumpido",             "Atontado",             "Descubierto",          "Invulnerable",         "Aporreado",            "Iracundo"
+            null,                       "Embelesado",               "Desorientado",             "Desarmado",                "Distraído",                "Huyendo",                  "Agarrado",                 "Enraizado",
+            "Pacificado",               "Silenciado",               "Dormido",                  "Frenado",                  "Aturdido",                 "Congelado",                "Incapacitado",             "Sangrando",
+            "Sanacíon",                 "Polimorfado",              "Desterrado",               "Protegido",                "Aprisionado",              "Montado",                  "Seducido",                 "Girado",
+            "Horrorizado",              "Invulnerable",             "Interrumpido",             "Atontado",                 "Descubierto",              "Invulnerable",             "Aporreado",                "Iracundo"
         ),
         'ct'            => array(
-            null,               "Bestia",                       "Dragonante",                   "Demonio",                      "Elemental",
-            "Gigante",          "No-muerto",                    "Humanoide",                    "Alimaña",                      "Mecánico",
-            "Sin categoría",    "Tótem",                        "Mascota mansa",                "Nube de gas"
+            "Sin categoría",            "Bestia",                   "Dragonante",               "Demonio",                  "Elemental",                "Gigante",                  "No-muerto",                "Humanoide",
+            "Alimaña",                  "Mecánico",                 "Sin especificar",          "Tótem",                    "Mascota mansa",            "Nube de gas"
         ),
-        'professions'   => array(
-            171 => "Alquimia",          164 => "Herrería",                  333 => "Encantamiento",         202 => "Ingeniería",            773 => "Inscripción",           755 => "Joyería",
-            165 => "Peletería",         186 => "Minería",                   197 => "Sastrería",             185 => "Cocina",                129 => "Primeros auxilios",     356 => "Pesca"
+        'fa'            => array(
+
+            1 => "Lobo",                2 => "Felino",              3 => "Araña",               4 => "Oso",                 5 => "Jabalí",              6 => "Crocolisco",          7 => "Carroñero",           8 => "Cangrejo",
+            9 => "Gorila",              11 => "Raptor",             12 => "Zancaalta",          20 => "Escórpido",          21 => "Tortuga",            24 => "Murciélago",         25 => "Hiena",              26 => "Ave rapaz",
+            27 => "Serpiente alada",    30 => "Dracohalcón",        31 => "Devastador",         32 => "Acechador deformado",33 => "Esporiélago",        34 => "Raya abisal",        35 => "Serpiente",          37 => "Palomilla",
+            38 => "Quimera",            39 => "Demosaurio",         41 => "Silítido",           42 => "Gusano",             43 => "Rinoceronte",        44 => "Avispa",             45 => "Can del Núcleo",     46 => "Bestia espíritu"
         ),
         'pvpRank'       => array(
             null,                                       "Private / Scout",                      "Corporal / Grunt",
@@ -162,10 +178,11 @@ $lang = array(
     'event' => array(
         'category'      => array("Sin categoría", "Vacacionales", "Periódicos", "Jugador contra Jugador")
     ),
+    'npc'   => array(
+        'rank'          => ['Normal', 'Élite', 'Élite raro', 'Jefe', 'Raro']
+    ),
     'achievement' => array(
-        'achievements'  => "logros",
         'criteria'      => "Requisitos",
-        'achievement'   => "logro",
         'points'        => "Puntos",
         'series'        => "Serie",
         'outOf'         => "de",
@@ -201,8 +218,17 @@ $lang = array(
         'CosmicMap'     => "Mapa cósmico",
     ),
     'zone' => array(
-        'zone'          => "Zone",
-        'zonePartOf'    => "Cette zone fait partie de la zone",
+        // 'zone'          => "Zone",
+        // 'zonePartOf'    => "Cette zone fait partie de la zone",
+        'cat'           => array(
+            "Reinos del Este",          "Kalimdor",                 "Mazmorras",                "Bandas",                   "No las uso",               null,
+            "Campos de batalla",        null,                       "Terrallende",              "Arenas",                   "Rasganorte"
+        )
+    ),
+    'quest' => array(
+        'level'         => 'Nivel %s',
+        'daily'         => 'Diaria',
+        'requirements'  => 'Requisitos'
     ),
     'title' => array(
         'cat'           => array(
@@ -215,11 +241,18 @@ $lang = array(
         )
     ),
     'pet'      => array(
-        'cat'           => array(
-            'Ferocidad', 'Tenacidad', 'Astucia'
-        )
+        'exotic'        => "Exótica",
+        "cat"           => ["Ferocidad", "Tenacidad", "Astucia"]
     ),
     'itemset' => array(
+        '_desc'         => "<b>%s</b> es el <b>%s</b>. Contiene %s piezas.",
+        '_descTagless'  => "<b>%s</b> es un conjunto de objetos que tiene %s piezas.",
+        '_setBonuses'   => "Bonificación de conjunto",
+        '_conveyBonus'  => "Tener puestos mas objetos de este conjunto le aplicará una bonificación a tu personaje.",
+        '_pieces'       => "piezas",
+        '_unavailable'  => "Este conjunto de objetos no está disponible para jugadores.",
+        '_tag'          => "Etiqueta",
+
         'notes'         => array(
             null,                                   "Set de mazmorra 1",                    "Set de mazmorra 2",                        "Set de banda tier 1",
             "Set de banda tier 2",                  "Set de banda tier 3",                  "Set JcJ nivel 60 superior",                "Set JcJ nivel 60 superior (obsoleto)",
@@ -342,8 +375,8 @@ $lang = array(
         )
     ),
     'item' => array(
-        'armor'         => "armadura",
-        'block'         => "bloqueo",
+        'armor'         => "%s armadura",
+        'block'         => "%s bloqueo",
         'charges'       => "cargas",
         'expend'        => "[expendable]",  // drop this shit
         'locked'        => "Cerrado",

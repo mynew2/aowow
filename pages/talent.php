@@ -8,16 +8,15 @@ $petCalc = $pageCall == 'petcalc';
 
 $page = array(
     'reqCSS' => array(
-        array('path' => 'template/css/TalentCalc.css', 'condition' => false),
-        array('path' => 'template/css/talent.css', 'condition' => false),
-        array('path' => 'template/css/TalentCalc_ie6.css', 'condition' => 'lte IE 6'),
-        array('path' => 'template/css/TalentCalc_ie67.css', 'condition' => 'lte IE 7'),
+        array('path' => 'template/css/TalentCalc.css',      'condition' => false),
+        array('path' => 'template/css/talent.css',          'condition' => false),
+        array('path' => 'template/css/TalentCalc_ie6.css',  'condition' => 'lte IE 6'),
+        array('path' => 'template/css/TalentCalc_ie67.css', 'condition' => 'lte IE 7')
     ),
     'reqJS'  => array(
         array('path' => '?data=glyphs'),
         array('path' => 'template/js/talent.js'),
-        array('path' => 'template/js/TalentCalc.js'),
-        array('path' => 'template/js/TalentCalc_'.User::$localeString.'.js'),
+        array('path' => 'template/js/TalentCalc.js')
     ),
     'title' => Lang::$talent['talentCalc'],
     'tab' => 1,
@@ -36,7 +35,6 @@ if ($petCalc)
 $smarty->updatePageVars($page);
 $smarty->assign('tcType', $petCalc ? 'pc' : 'tc');
 $smarty->assign('lang', array_merge(Lang::$main, Lang::$talent));
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->display('talent.tpl');
 
 ?>

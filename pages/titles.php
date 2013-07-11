@@ -25,9 +25,7 @@ if (!$smarty->loadCache($cacheKey, $pageData))
     $pageData = array(
         'file'   => 'title',
         'data'   => $titles->getListviewData(),
-        'params' => array(
-            'tabs'   => false
-        )
+        'params' => []
     );
 
     if ($titles->hasDiffFields(['category']))
@@ -49,7 +47,6 @@ $page = array(
 $smarty->updatePageVars($page);
 $smarty->assign('lang', Lang::$main);
 $smarty->assign('lvData', $pageData);
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->display('generic-no-filter.tpl');
 
 ?>

@@ -7,6 +7,7 @@ if (!defined('AOWOW_REVISION'))
 $lang = array(
     // page variables
     'main' => array(
+        'name'          => "Name",
         'link'          => "Link",
         'signIn'        => "Sign in",
         'jsError'       => "Please make sure you have javascript enabled.",
@@ -16,7 +17,6 @@ $lang = array(
         'timeSQL'       => "Time of MySQL queries",
         'noJScript'     => "<b>This site makes extensive use of JavaScript.</b><br />Please <a href=\"https://www.google.com/support/adsense/bin/answer.py?answer=12654\" target=\"_blank\">enable JavaScript</a> in your browser.",
         'profiles'      => "Your Characters",
-        'links'         => "Links",
         'pageNotFound'  => "This %s doesn't exist.",
         'gender'        => "Gender",
         'sex'           => [null, 'Male', 'Female'],
@@ -65,11 +65,16 @@ $lang = array(
         'refineSearch'  => "Tip: Refine your search by browsing a <a href=\"javascript:;\" id=\"fi_subcat\">subcategory</a>.",
 
         // infobox
-        'name'          => "Name",
+        'unavailable'   => "Not available to players",
         'disabled'      => "Disabled",
         'disabledHint'  => "Cannot be attained or completed",
         'serverside'    => "Serverside",
         'serversideHint' => "These informations are not in the Client and have been provided by sniffing and/or guessing.",
+
+        // red buttons
+        'links'         => "Links",
+        'compare'       => "Compare",
+        'view3D'        => "View in 3D"
     ),
     'search' => array(
         'search'        => "Search",
@@ -78,6 +83,8 @@ $lang = array(
         'tryAgain'      => "Please try some different keywords or check your spelling.",
     ),
     'game' => array(
+        'achievement'   => "achievement",
+        'achievements'  => "Achievements",
         'class'         => "class",
         'classes'       => "Classes",
         'currency'      => "currency",
@@ -85,6 +92,8 @@ $lang = array(
         'difficulty'    => "Difficulty",
         'dispelType'    => "Dispel type",
         'duration'      => "Duration",
+        'gameObject'    => "objects",
+        'gameObjects'   => "Objects",
         'glyphType'     => "Glyph type",
         'race'          => "race",
         'races'         => "Races",
@@ -100,6 +109,7 @@ $lang = array(
         'mechAbbr'      => "Mech.",
         'pet'           => "Pet",
         'pets'          => "Hunter Pets",
+        'petCalc'       => "Hunter Pet Calculator",
         'requires'      => "Requires %s",
         'requires2'     => "Requires",
         'reqLevel'      => "Requires Level %s",
@@ -109,7 +119,11 @@ $lang = array(
         'school'        => "School",
         'spell'         => "spell",
         'spells'        => "Spells",
+        'type'          => "Type",
         'valueDelim'    => " to ",
+        'zone'          => "zone",
+        'zones'         => "Zones",
+        'expansions'    => array("Classic", "The Burning Crusade", "Wrath of the Lich King"),
         'stats'         => array("Strength", "Agility", "Stamina", "Intellect", "Spirit"),
         'languages'     => array(
             1 => "Orcish",      2 => "Darnassian",      3 => "Taurahe",     6 => "Dwarvish",        7 => "Common",          8 => "Demonic",         9 => "Titan",           10 => "Thalassian",
@@ -133,15 +147,20 @@ $lang = array(
             "Stealth",          "Moonkin Form",                 "Spirit of Redemption"
         ),
         'me'            => array(
-            null,           "Charmed",              "Disoriented",              "Disarmed",                 "Distracted",               "Fleeing",              "Gripped",                  "Rooted",
-            "Pacified",     "Silenced",             "Asleep",                   "Ensnared",                 "Stunned",                  "Frozen",               "Incapacitated",            "Bleeding",
-            "Healing",      "Polymorphed",          "Banished",                 "Shielded",                 "Shackled",                 "Mounted",              "Seduced",                  "Turned",
-            "Horrified",    "Invulnerable",         "Interrupted",              "Dazed",                    "Discovery",                "Invulnerable",         "Sapped",                   "Enraged"
+            null,                       "Charmed",                  "Disoriented",              "Disarmed",                 "Distracted",               "Fleeing",                  "Gripped",                  "Rooted",
+            "Pacified",                 "Silenced",                 "Asleep",                   "Ensnared",                 "Stunned",                  "Frozen",                   "Incapacitated",            "Bleeding",
+            "Healing",                  "Polymorphed",              "Banished",                 "Shielded",                 "Shackled",                 "Mounted",                  "Seduced",                  "Turned",
+            "Horrified",                "Invulnerable",             "Interrupted",              "Dazed",                    "Discovery",                "Invulnerable",             "Sapped",                   "Enraged"
         ),
         'ct'            => array(
-            null,               "Beast",                        "Dragonkin",                    "Demon",                        "Elemental",
-            "Giant",            "Undead",                       "Humanoid",                     "Critter",                      "Mechanical",
-            "Uncategorized",    "Totem",                        "Non-combat Pet",               "Gas Cloud"
+            "Uncategorized",            "Beast",                    "Dragonkin",                "Demon",                    "Elemental",                "Giant",                    "Undead",                   "Humanoid",
+            "Critter",                  "Mechanical",               "Not specified",            "Totem",                    "Non-combat Pet",           "Gas Cloud"
+        ),
+        'fa'            => array(
+            1 => "Wolf",                2 => "Cat",                 3 => "Spider",              4 => "Bear",                5 => "Boar",                6 => "Crocolisk",           7 => "Carrion Bird",        8 => "Crab",
+            9 => "Gorilla",             11 => "Raptor",             12 => "Tallstrider",        20 => "Scorpid",            21 => "Turtle",             24 => "Bat",                25 => "Hyena",              26 => "Bird of Prey",
+            27 => "Wind Serpent",       30 => "Dragonhawk",         31 => "Ravager",            32 => "Warp Stalker",       33 => "Sporebat",           34 => "Nether Ray",         35 => "Serpent",            37 => "Moth",
+            38 => "Chimaera",           39 => "Devilsaur",          41 => "Silithid",           42 => "Worm",               43 => "Rhino",              44 => "Wasp",               45 => "Core Hound",         46 => "Spirit Beast"
         ),
         'pvpRank'       => array(
             null,                                       "Private / Scout",                      "Corporal / Grunt",
@@ -198,13 +217,14 @@ $lang = array(
         // Sign_in_to_your_Game_Account = Enter your game account:
         // Please_enter_your_confirm_password = Please enter your confirm password
     ),
+    'npc'   => array(
+        'rank'          => ['Normal', 'Elite', 'Rare Elite', 'Boss', 'Rare']
+    ),
     'event' => array(
         'category'      => array("Uncategorized", "Holidays", "Recurring", "Player vs. Player")
     ),
     'achievement' => array(
-        'achievements'  => "achievements",
         'criteria'      => "Criteria",
-        'achievement'   => "achievement",
         'points'        => "Points",
         'series'        => "Series",
         'outOf'         => "out of",
@@ -240,8 +260,17 @@ $lang = array(
         'CosmicMap'     => "Cosmic Map",
     ),
     'zone' => array(
-        'zone'          => "Zone",
-        'zonePartOf'    => "This zone is part of",
+        // 'zone'          => "Zone",
+        // 'zonePartOf'    => "This zone is part of",
+        'cat'           => array(
+            "Eastern Kingdoms",         "Kalimdor",                 "Dungeons",                 "Raids",                    "Unused",                   null,
+            "Battlegrounds",            null,                       "Outland",                  "Arenas",                   "Northrend"
+        )
+    ),
+    'quest' => array(
+        'level'         => 'Level %s',
+        'daily'         => 'Daily',
+        'requirements'  => 'Requirements'
     ),
     'title' => array(
         'cat'           => array(
@@ -254,11 +283,18 @@ $lang = array(
         )
     ),
     'pet'      => array(
-        'cat'           => array(
-            'Ferocity', 'Tenacity', 'Cunning'
-        )
+        'exotic'        => "Exotic",
+        'cat'           => ["Ferocity", "Tenacity", "Cunning"]
     ),
     'itemset' => array(
+        '_desc'         => "<b>%s</b> is the <b>%s</b>. It contains %s pieces.",
+        '_descTagless'  => "<b>%s</b> is an item set that contains %s pieces.",
+        '_setBonuses'   => "Set Bonuses",
+        '_conveyBonus'  => "Wearing more pieces of this set will convey bonuses to your character.",
+        '_pieces'       => "pieces",
+        '_unavailable'  => "This item set is not available to players.",
+        '_tag'          => "Tag",
+
         'notes'         => array(
             null,                                   "Dungeon Set 1",                        "Dungeon Set 2",                        "Tier 1 Raid Set",
             "Tier 2 Raid Set",                      "Tier 3 Raid Set",                      "Level 60 PvP Rare Set",                "Level 60 PvP Rare Set (Old)",
@@ -381,8 +417,8 @@ $lang = array(
         )
     ),
     'item' => array(
-        'armor'         => "Armor",
-        'block'         => "Block",
+        'armor'         => "%s Armor",
+        'block'         => "%s Block",
         'charges'       => "Charges",
         'expend'        => "expendable",
         'locked'        => "Locked",

@@ -13,9 +13,7 @@ if (!$smarty->loadCache($cacheKey, $pageData))
     $pageData = array(
         'file'   => 'race',
         'data'   => $races->getListviewData(),
-        'params' => array(
-            'tabs'   => false
-        )
+        'params' => []
     );
 
     $smarty->saveCache($cacheKey, $pageData);
@@ -30,7 +28,6 @@ $page = array(
 
 $smarty->updatePageVars($page);
 $smarty->assign('lang', Lang::$main);
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->assign('lvData', $pageData);
 $smarty->display('generic-no-filter.tpl');
 

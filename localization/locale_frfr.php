@@ -12,6 +12,7 @@ if (!defined('AOWOW_REVISION'))
 $lang = array(
     // page variables
     'main' => array(
+        'name'          => "Nom",
         'link'          => "Lien",
         'signIn'        => "S'enregistrer",
         'jsError'       => "S'il vous plait, assurez vous d'avoir le javascript autorisé.",
@@ -21,7 +22,6 @@ $lang = array(
         'timeSQL'       => "Temps d'exécution des requêtes SQL",
         'noJScript'     => "<b>Ce site requiert JavaScript pour fonctionner.</b><br />Veuillez <a href=\"https://www.google.com/support/adsense/bin/answer.py?answer=12654\" target=\"_blank\">activer JavaScript</a> dans votre navigateur.",
         'profiles'      => "Vos personnages",      // translate.google :x
-        'links'         => "Liens",
         'pageNotFound'  => "Ce %s n'existe pas.",
         'gender'        => "Genre",
         'sex'           => [null, 'Homme', 'Femme'],
@@ -62,11 +62,16 @@ $lang = array(
         'refineSearch'  => "Astuce : Affinez votre recherche en utilisant une <a href=\"javascript:;\" id=\"fi_subcat\">sous-catégorie</a>.",
 
         // infobox
-        'name'          => "Nom",
+        'unavailable'   => "Non disponible aux joueurs",
         'disabled'      => "[Disabled]",
         'disabledHint'  => "[Cannot be attained or completed]",
         'serverside'    => "[Serverside]",
         'serversideHint' => "[These informations are not in the Client and have been provided by sniffing and/or guessing.]",
+
+        // red buttons
+        'links'         => "Liens",
+        'compare'       => "Comparer",
+        'view3D'        => "Voir en 3D"
     ),
     'search' => array(
         'search'        => "Recherche",
@@ -75,6 +80,8 @@ $lang = array(
         'tryAgain'      => "Veuillez essayer d'autres mots ou vérifiez l'orthographe des termes de recherche.",
     ),
     'game' => array (
+        'achievement'   => "haut fait",
+        'achievements'  => "Hauts faits",
         'class'         => "classe",
         'classes'       => "Classes",
         'currency'      => "monnaies",
@@ -82,6 +89,8 @@ $lang = array(
         'difficulty'    => "Difficulté",
         'dispelType'    => "Type de dissipation",
         'duration'      => "Durée",
+        'gameObject'    => "entité",
+        'gameObjects'   => "Entités",
         'glyphType'     => "Type de glyphe",
         'race'          => "race",
         'races'         => "Races",
@@ -97,6 +106,7 @@ $lang = array(
         'mechAbbr'      => "Mécan.",
         'pet'           => "Familier",
         'pets'          => "Familiers de chasseur",
+        'petCalc'       => "Calculateur de familiers",
         'requires'      => "%s requis",
         'requires2'     => "Requiert",
         'reqLevel'      => "Niveau %s requis",
@@ -106,7 +116,11 @@ $lang = array(
         'school'        => "École",
         'spell'         => "sort",
         'spells'        => "Sorts",
+        'type'          => "Type",
         'valueDelim'    => " - ",
+        'zone'          => "zone",
+        'zones'         => "Zones",
+        'expansions'    => array("Classique", "The Burning Crusade", "Wrath of the Lich King"),
         'stats'         => array("Force", "Agilité", "Endurance", "Intelligence", "Esprit"),
         'languages'     => array(
             1 => "Orc",         2 => "Darnassien",      3 => "Taurahe",     6 => "Nain",            7 => "Commun",          8 => "Démoniaque",      9 => "Titan",           10 => "Thalassien",
@@ -130,19 +144,20 @@ $lang = array(
             "Camouflage",       "Forme de sélénien",            "Esprit de rédemption"
         ),
         'me'            => array(
-            null,               "Charmé",               "Désorienté",           "Désarmé",              "Distrait",             "En fuite",                 "Maladroit",            "Immobilisé",
-            "Pacifié",          "Réduit au silence",    "Endormi",              "Pris au piège",        "Étourdi",              "Gelé",                     "Stupéfié",             "Sanguinolent",
-            "Soins",            "Métamorphosé",         "Banni",                "Protégé",              "Entravé",              "Monté",                    "Séduit",               "Repoussé",
-            "Horrifié",         "Invulnérable",         "Interrompu",           "Hébété",               "Découverte",           "Invulnérable",             "Assommé",              "Enragé"
+            null,                       "Charmé",                   "Désorienté",               "Désarmé",                  "Distrait",                 "En fuite",                 "Maladroit",                "Immobilisé",
+            "Pacifié",                  "Réduit au silence",        "Endormi",                  "Pris au piège",            "Étourdi",                  "Gelé",                     "Stupéfié",                 "Sanguinolent",
+            "Soins",                    "Métamorphosé",             "Banni",                    "Protégé",                  "Entravé",                  "Monté",                    "Séduit",                   "Repoussé",
+            "Horrifié",                 "Invulnérable",             "Interrompu",               "Hébété",                   "Découverte",               "Invulnérable",             "Assommé",                  "Enragé"
         ),
         'ct'            => array(
-            null,               "Bête",                         "Draconien",                    "Démon",                        "Élémentaire",
-            "Géant",            "Mort-vivant",                  "Humanoïde",                    "Bestiole",                     "Mécanique",
-            "Non classés",      "Totem",                        "Familier pacifique",           "Nuage de gaz"
+            "Non classés",              "Bête",                     "Draconien",                "Démon",                    "Élémentaire",              "Géant",                    "Mort-vivant",              "Humanoïde",
+            "Bestiole",                 "Mécanique",                "Non spécifié",             "Totem",                    "Familier pacifique",       "Nuage de gaz"
         ),
-        'professions'   => array(
-            171 => "Alchimie",          164 => "Forge",                     333 => "Enchantement",          202 => "Ingénierie",            773 => "Calligraphie",          755 => "Joaillerie",
-            165 => "Travail du cuir",   186 => "Minage",                    197 => "Couture",               185 => "Cuisine",               129 => "Secourisme",            356 => "Pêche"
+        'fa'            => array(
+            1 => "Loup",                2 => "Félin",               3 => "Araignée",            4 => "Ours",                5 => "Sanglier",            6 => "Crocilisque",         7 => "Charognard",          8 => "Crabe",
+            9 => "Gorille",             11 => "Raptor",             12 => "Haut-trotteur",      20 => "Scorpide",           21 => "Tortue",             24 => "Chauve-souris",      25 => "Hyène",              26 => "Oiseau de proie",
+            27 => "Serpent des vents",  30 => "Faucon-dragon",      31 => "Ravageur",           32 => "Traqueur dim.",      33 => "Sporoptère",         34 => "Raie du Néant",      35 => "Serpent",            37 => "Phalène",
+            38 => "Chimère",            39 => "Diablosaure",        41 => "Silithide",          42 => "Ver",                43 => "Rhinocéros",         44 => "Guêpe",              45 => "Chien du Magma",     46 => "Esprit de bête"
         ),
         'pvpRank'       => array(
             null,                                       "Private / Scout",                      "Corporal / Grunt",
@@ -162,10 +177,11 @@ $lang = array(
     'event' => array(
         'category'      => array("Non classés", "Vacances", "Récurrent", "Joueur ctr. Joueur")
     ),
+    'npc'   => array(
+        'rank'          => ['Standard', 'Élite', 'Élite rare', 'Boss', 'Rare']
+    ),
     'achievement' => array(
-        'achievements'  => "hauts faits",
         'criteria'      => "Critères",
-        'achievement'   => "haut fait",
         'points'        => "Points",
         'series'        => "Série",
         'outOf'         => "sur",
@@ -201,8 +217,17 @@ $lang = array(
         'CosmicMap'     => "Carte cosmique",
     ),
     'zone' => array(
-        'zone'          => "Zone",
-        'zonePartOf'    => "Cette zone fait partie de la zone",
+        // 'zone'          => "Zone",
+        // 'zonePartOf'    => "Cette zone fait partie de la zone",
+        'cat'           => array(
+            "Royaumes de l'est",        "Kalimdor",                 "Donjons",                  "Raids",                    "Inutilisées",              null,
+            "Champs de bataille",       null,                       "Outreterre",               "Arènes",                   "Norfendre"
+        )
+    ),
+    'quest' => array(
+        'level'         => 'Niveau %s',
+        'daily'         => 'Journalière',
+        'requirements'  => 'Conditions'
     ),
     'title' => array(
         'cat'           => array(
@@ -215,11 +240,18 @@ $lang = array(
         )
     ),
     'pet'      => array(
-        'cat'           => array(
-            'Férocité', 'Tenacité', 'Ruse'
-        )
+        'exotic'        => "Exotique",
+        "cat"           => ["Férocité", "Tenacité", "Ruse"]
     ),
     'itemset' => array(
+        '_desc'         => "<b>%s</b> est le <b>%s</b>. Il contient %s pièces.",
+        '_descTagless'  => "<b>%s</b> est un ensemble d'objet qui contient %s pièces.",
+        '_setBonuses'   => "Bonus de l'ensemble",
+        '_conveyBonus'  => "Plus d'objets de cet ensemble sont équipés, plus votre personnage aura des bonus de caractéristiques.",
+        '_pieces'       => "pièces",
+        '_unavailable'  => "Cet objet n'est plus disponible aux joueurs.",
+        '_tag'          => "Étiquette",
+
         'notes'         => array(
             null,                                   "Ensemble de donjon 1",                 "Ensemble de donjon 2",                         "Ensemble de raid palier 1",
             "Ensemble de raid palier 2",            "Ensemble de raid palier 3",            "Ensemble JcJ niveau 60 supérieur",             "Ensemble JcJ niveau 60 supérieur (désuet)",
@@ -342,8 +374,8 @@ $lang = array(
         )
     ),
     'item' => array(
-        'armor'         => "Armure :",
-        'block'         => "Bloquer :",
+        'armor'         => "Armure : %s",
+        'block'         => "Bloquer : %s",
         'charges'       => "Charges",
         'expend'        => "expendable",
         'locked'        => "Verrouillé",
@@ -463,7 +495,7 @@ $lang = array(
             "Stat Inutilisée #%d (%d)",
         )
     ),
-    'colon'         => ' : '
+    'colon'         => ' : '
 );
 
 ?>

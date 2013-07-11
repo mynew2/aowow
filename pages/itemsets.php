@@ -15,7 +15,12 @@ if (!$smarty->loadCache($cacheKey, $pageData))
 {
     $itemsets = new ItemsetList([], true);                  // class selection is via filter, nothing applies here
 
-    $itemsets->addGlobalsToJscript($pageData);
+    $pageData = array(
+        'data'   => $itemsets->getListviewData(),           // listview content
+        'params' => []
+    );
+
+    $itemsets->addGlobalsToJscript($smarty);
 
     // recreate form selection
     $filter['query'] = isset($_GET['filter']) ? $_GET['filter'] : NULL;
@@ -24,10 +29,6 @@ if (!$smarty->loadCache($cacheKey, $pageData))
 
     if (isset($filter['cl']))
         $path[] = $filter['cl'];
-
-    // listview content
-    $pageData['data']   = $itemsets->getListviewData();
-    $pageData['params'] = ['tabs' => false];
 
     // create note if search limit was exceeded
     if ($itemsets->getMatches() > $AoWoWconf['sqlLimit'])
@@ -50,7 +51,7 @@ $page = array(
     'path'   => json_encode($path, JSON_NUMERIC_CHECK),
     'reqJS'  => array(
         array('path' => 'template/js/filters.js', 'conditional' => false),
-        array('path' => '?data=weight-presets', 'conditional' => false),
+        array('path' => '?data=weight-presets',   'conditional' => false),
    )
 );
 
@@ -61,7 +62,6 @@ asort(Lang::$game['cl']);
 $smarty->updatePageVars($page);
 $smarty->assign('filter', $filter);
 $smarty->assign('lang', array_merge(Lang::$main, Lang::$game, Lang::$itemset, Lang::$item));
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->assign('lvData', $pageData);
 $smarty->display('itemsets.tpl');
 

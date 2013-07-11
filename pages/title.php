@@ -16,11 +16,7 @@ if (!$smarty->loadCache($cacheKeyPage, $pageData))
     if ($title->error)
         $smarty->notFound(Lang::$game['title']);
 
-    $title->addGlobalsToJscript($pageData);
-    $title->reset();
-
     $infobox = [];
-
     if ($title->getField('side') == SIDE_ALLIANCE)
         $infobox[] = Lang::$main['side'].Lang::$colon.'[span class=alliance-icon]'.Lang::$game['si'][SIDE_ALLIANCE].'[/span]';
     else if ($title->getField('side') == SIDE_HORDE)
@@ -32,7 +28,7 @@ if (!$smarty->loadCache($cacheKeyPage, $pageData))
         $infobox[] = Lang::$main['gender'].Lang::$colon.'[span class='.($g == 2 ? 'female' : 'male').'-icon]'.Lang::$main['sex'][$g].'[/span]';
 
     if ($e = $title->getField('eventId'))
-        $infobox[] = Lang::$game['eventShort'].Lang::$colon.'[url=?event='.$e.']'.WorldEvent::getName($e).'[/url]';
+        $infobox[] = Lang::$game['eventShort'].Lang::$colon.'[url=?event='.$e.']'.WorldEventList::getName($e).'[/url]';
 
     $pageData = array(
         'page' => array(
@@ -51,27 +47,28 @@ if (!$smarty->loadCache($cacheKeyPage, $pageData))
             {
                 case  4:
                     $quests = new QuestList(array(['id', $entries]));
-                    $quests->addRewardsToJscript($pageData);
+                    $quests->addGlobalsToJscript($smarty, GLOBALINFO_REWARDS);
 
                     $pageData['page']['questReward'] = $quests->getListviewData();
                     $pageData['page']['questParams'] = array(
                         'id'            => 'reward-from-quest',
                         'name'          => '$LANG.tab_rewardfrom',
                         'hiddenCols'    => "$['experience', 'money']",
-                        'visibleCols'   => "$['category']"
+                        'visibleCols'   => "$['category']",
+                        'tabs'          => '$tabsRelated'
                     );
                     break;
                 case 12:
                     $acvs = new AchievementList(array(['id', $entries]));
-                    $acvs->addGlobalsToJscript($pageData);
-                    $acvs->addRewardsToJscript($pageData);
+                    $acvs->addGlobalsToJscript($smarty);
 
                     $pageData['page']['acvReward'] = $acvs->getListviewData();
                     $pageData['page']['acvParams'] = array(
                         'id'            => 'reward-from-achievement',
                         'name'          => '$LANG.tab_rewardfrom',
                         'visibleCols'   => "$['category']",
-                        'sort'          => "$['reqlevel', 'name']"
+                        'sort'          => "$['reqlevel', 'name']",
+                        'tabs'          => '$tabsRelated'
                     );
                     break;
                 // case 13:
@@ -87,18 +84,17 @@ if (!$smarty->loadCache($cacheKeyPage, $pageData))
 }
 
 $smarty->updatePageVars(array(
-    'title'     => $pageData['title']." - ".Util::ucfirst(Lang::$game['title']),
-    'path'      => $pageData['path'],
-    'tab'       => 0,                                       // for g_initHeader($tab)
-    'type'      => TYPE_TITLE,                              // 11:Titles
-    'typeId'    => $id
+    'title'  => $pageData['title']." - ".Util::ucfirst(Lang::$game['title']),
+    'path'   => $pageData['path'],
+    'tab'    => 0,                                          // for g_initHeader($tab)
+    'type'   => TYPE_TITLE,                                 // 11:Titles
+    'typeId' => $id
 ));
 
 
 $smarty->assign('community', CommunityContent::getAll(TYPE_TITLE, $id));  // comments, screenshots, videos
 $smarty->assign('lang', array_merge(Lang::$main));
 $smarty->assign('lvData', $pageData);
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->display('title.tpl');
 
 ?>

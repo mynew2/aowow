@@ -2,7 +2,6 @@
     new Listview({ldelim}
         template:'item',
         {if !isset($params.id)}id:'items',{/if}
-        {if !isset($params.tabs)}tabs:'listview-generic',{/if}
         {if !isset($params.name)}name:LANG.tab_items,{/if}
         {if !isset($params.parent)}parent:'listview-generic',{/if}
         {foreach from=$params key=k item=v}
@@ -31,6 +30,9 @@
                     {/if}
                     {if isset($curr.percent)}
                         percent:{$curr.percent},
+                    {/if}
+                    {if isset($curr.condition)}
+                        condition:{$curr.condition},
                     {/if}
                     {if isset($curr.group) and isset($curr.groupcount)}
                         group:'({$curr.group}){if $curr.groupcount!=1} x{$curr.groupcount}{/if}',

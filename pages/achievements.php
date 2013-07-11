@@ -72,16 +72,17 @@ if (!$smarty->loadCache($cacheKey, $pageData, $filter))
             $path[] = $cat['id'];
             $title[] = Util::localizedString($cat, 'name');
         }
-        array_unshift($title, Util::ucFirst(Lang::$achievement['achievements']));
+        array_unshift($title, Util::ucFirst(Lang::$game['achievements']));
     }
 
-    // fill g_items, g_titles, g_achievements
-    $acvList->addGlobalsToJscript($pageData);
-    $acvList->addRewardsToJScript($pageData);
-
     // listview content
-    $pageData['data']   = $acvList->getListviewData();
-    $pageData['params'] = ['tabs' => false];
+    $pageData = array(
+        'data'   => $acvList->getListviewData(),
+        'params' => []
+    );
+
+    // fill g_items, g_titles, g_achievements
+    $acvList->addGlobalsToJscript($smarty);
 
     // if we are have different cats display field
     if ($acvList->hasDiffFields(['category']))
@@ -116,7 +117,6 @@ asort(Lang::$game['si']);
 $smarty->updatePageVars($page);
 $smarty->assign('filter', $filter);
 $smarty->assign('lang', array_merge(Lang::$main, Lang::$game, Lang::$achievement));
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->assign('lvData', $pageData);
 $smarty->display('achievements.tpl');
 

@@ -7,10 +7,12 @@ class TitleList extends BaseType
 {
     use listviewHelper;
 
-    public    $sources    = [];
+    public static $type       = TYPE_TITLE;
 
-    protected $setupQuery = 'SELECT *, id AS ARRAY_KEY FROM ?_titles WHERE [cond] ORDER BY Id ASC';
-    protected $matchQuery = 'SELECT COUNT(1) FROM ?_titles WHERE [cond]';
+    public        $sources    = [];
+
+    protected     $setupQuery = 'SELECT *, id AS ARRAY_KEY FROM ?_titles WHERE [cond] ORDER BY Id ASC';
+    protected     $matchQuery = 'SELECT COUNT(1) FROM ?_titles WHERE [cond]';
 
     public function __construct($data)
     {
@@ -59,18 +61,19 @@ class TitleList extends BaseType
         return $data;
     }
 
-    public function addGlobalsToJscript(&$refs)
+    public function addGlobalsToJscript(&$template, $addMask = 0)
     {
-        if (!isset($refs['gTitles']))
-            $refs['gTitles'] = [];
+        $data = [];
 
         while ($this->iterate())
         {
-            $refs['gTitles'][$this->id]['name'] = Util::jsEscape($this->getField('male', true));
+            $data[$this->id]['name'] = Util::jsEscape($this->getField('male', true));
 
             if ($_ = $this->getField('female', true))
-                $refs['gTitles'][$this->id]['namefemale'] = $_;
+                $data[$this->id]['namefemale'] = $_;
         }
+
+        $template->extendGlobalData(self::$type, $data);
     }
 
     private function createSource()
@@ -107,13 +110,27 @@ class TitleList extends BaseType
 
             // Quest-source
             if (isset($src[4]))
+            {
                 foreach ($src[4] as $s)
+                {
+                    if (isset($sources[4][$s]['s']))
+                        $this->faction2Side($sources[4][$s]['s']);
+
                     $tmp[4][] = $sources[4][$s];
+                }
+            }
 
             // Achievement-source
             if (isset($src[12]))
+            {
                 foreach ($src[12] as $s)
+                {
+                    if (isset($sources[12][$s]['s']))
+                        $this->faction2Side($sources[12][$s]['s']);
+
                     $tmp[12][] = $sources[12][$s];
+                }
+            }
 
             // other source (only one item possible, so no iteration needed)
             if (isset($src[13]))
@@ -129,8 +146,15 @@ class TitleList extends BaseType
         return str_replace('%s', '<span class="q0">&lt;'.Lang::$main['name'].'&gt;</span>', $this->getField($field, true));
     }
 
-    public function addRewardsToJScript(&$ref) { }
     public function renderTooltip() { }
+
+    private function faction2Side(&$faction)                // thats weird.. and hopefully unique to titles
+    {
+        if ($faction == 2)                                  // Horde
+            $faction = 0;
+        else if ($faction != 1)                             // Alliance
+            $faction = 3;                                   // Both
+    }
 }
 
 ?>

@@ -29,7 +29,7 @@ $validCats  = array(
     -4  => true,                                            // Racial Traits
     -5  => true,                                            // Mounts
     -6  => true,                                            // Companions
-    -7  => [409, 410, 411],                                 // PetTalents => TalenTtabId
+    -7  => [409, 410, 411],                                 // PetTalents => TalentTabId
     -8  => true,                                            // NPC Abilities
     -9  => true,                                            // GM Abilities
     -11 => [6, 8, 10],                                      // Proficiencies [Weapon, Armor, Language]
@@ -380,9 +380,8 @@ if (!$smarty->loadCache($cacheKey, $pageData, $filter))
     $spells = new SpellList($conditions, true);
 
     $pageData['data'] = $spells->getListviewData();
-    $pageData['params']['tabs'] = false;
 
-    $spells->addGlobalsToJscript($pageData);
+    $spells->addGlobalsToJscript($smarty, GLOBALINFO_SELF);
 
     // create note if search limit was exceeded; overwriting 'note' is intentional
     if ($spells->getMatches() > $AoWoWconf['sqlLimit'])
@@ -394,7 +393,7 @@ if (!$smarty->loadCache($cacheKey, $pageData, $filter))
     if ($spells->filterGetError())
         $pageData['params']['_errors'] = '$1';
 
-    $mask = $spells->hasDiffFields(['reagent1', 'skillLines', 'trainingCost']);
+    $mask = $spells->hasSetFields(['reagent1', 'skillLines', 'trainingCost']);
 
     if ($mask & 0x1)
         $visibleCols[] = 'reagents';
@@ -445,7 +444,6 @@ Lang::$game['race'] = Util::ucFirst(Lang::$game['race']);
 $smarty->updatePageVars($page);
 $smarty->assign('filter', $filter);
 $smarty->assign('lang', array_merge(Lang::$main, Lang::$game, Lang::$achievement));
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->assign('lvData', $pageData);
 $smarty->display('spells.tpl');
 

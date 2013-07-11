@@ -87,7 +87,8 @@ abstract class BaseType
 
                 foreach ($c as $foo)
                     if (is_array($foo))
-                        $sql[] = $resolveCondition($foo, $supLink);
+                        if ($x = $resolveCondition($foo, $supLink))
+                            $sql[] = $x;
 
                 return '('.implode($subLink, $sql).')';
             }
@@ -99,6 +100,9 @@ abstract class BaseType
                     $field = $resolveCondition($c[0], $supLink);
                 else if ($c[0])
                     $field = '`'.implode('`.`', explode('.', Util::sqlEscape($c[0]))).'`';
+                else
+                    return null;
+
                 if (is_array($c[1]))
                 {
                     $val = implode(',', Util::sqlEscape($c[1]));
@@ -117,7 +121,7 @@ abstract class BaseType
                     $op  = (isset($c[2]) && $c[2] == '!') ? 'NOT LIKE' : 'LIKE';
                     $val = '"%'.$val.'%"';
                 }
-                else if (is_int($c[1]))
+                else if (is_numeric($c[1]))
                 {
                     $op  = (isset($c[2]) && $c[2] == '!') ? '<>' : '=';
                     $val = Util::sqlEscape($c[1]);
@@ -128,10 +132,7 @@ abstract class BaseType
                 if (isset($c[2]) && $c[2] != '!')
                     $op = $c[2];
 
-                if (isset($field) && isset($op) && isset($val))
-                    return '('.$field.' '.$op.' '.$val.')';
-                else
-                    return null;
+                return '('.$field.' '.$op.' '.$val.')';
             }
         };
 
@@ -152,6 +153,7 @@ abstract class BaseType
                     unset($conditions[$i]);
             }
         }
+
         foreach ($conditions as $c)
             if ($x = $resolveCondition($c, $linking))
                 $sql[] = $x;
@@ -183,7 +185,7 @@ abstract class BaseType
 
         $this->curTpl = current($this->templates);
         $field        = $this->curTpl ? Util::getIdFieldName($this->curTpl) : null;
-        $this->id     = $this->curTpl ? $this->curTpl[$field] : 0;
+        $this->id     = $this->curTpl ? (int)$this->curTpl[$field] : 0;
 
         while ($qty--)
             next($this->templates);
@@ -194,7 +196,7 @@ abstract class BaseType
     public function reset()
     {
         $this->curTpl = reset($this->templates);
-        $this->id     = $this->curTpl[Util::getIdFieldName($this->curTpl)];
+        $this->id     = (int)$this->curTpl[Util::getIdFieldName($this->curTpl)];
     }
 
     // read-access to templates
@@ -203,10 +205,11 @@ abstract class BaseType
         if (!$this->curTpl || (!$localized && !isset($this->curTpl[$field])))
             return '';
 
-        if (!$localized)
-            return $this->curTpl[$field];
-        else
+        if ($localized)
             return Util::localizedString($this->curTpl, $field);
+
+        $value = $this->curTpl[$field];
+        return is_numeric($value) ? floatVal($value) : $value;
     }
 
     public function getMatches()
@@ -246,11 +249,7 @@ abstract class BaseType
     abstract public function getListviewData();
 
     // should return data to extend global js variables for a certain type (e.g. g_items)
-    abstract public function addGlobalsToJScript(&$ref);
-
-    // should return data to extend global js variables for the rewards provided by this type (e.g. g_titles)
-    // rewards will not always be required and only by Achievement and Quest .. but yeah.. maybe it should be merged with addGlobalsToJScript
-    abstract public function addRewardsToJScript(&$ref);
+    abstract public function addGlobalsToJScript(&$smarty, $addMask = GLOBALINFO_ANY);
 
     // NPC, GO, Item, Quest, Spell, Achievement, Profile would require this
     abstract public function renderTooltip();
@@ -258,6 +257,33 @@ abstract class BaseType
 
 trait listviewHelper
 {
+    public function hasSetFields($fields)
+    {
+        if (!is_array($fields))
+            return 0x0;
+
+        $result = 0x0;
+
+        $this->reset();
+
+        while ($this->iterate())
+        {
+            foreach ($fields as $k => $str)
+            {
+                if ($this->getField($str))
+                {
+                    $result |= 1 << $k;
+                    unset($fields[$k]);
+                }
+            }
+
+            if (empty($fields))                             // all set .. return early
+                return $result;
+        }
+
+        return $result;
+    }
+
     public function hasDiffFields($fields)
     {
         if (!is_array($fields))
@@ -307,6 +333,65 @@ trait listviewHelper
 
 }
 
+trait spawnHelper
+{
+    private static $spawnQuery = " SELECT a.guid AS ARRAY_KEY, map, position_x, position_y, spawnMask, phaseMask, spawntimesecs, eventEntry, pool_entry AS pool FROM ?# a LEFT JOIN ?# b ON a.guid = b.guid LEFT JOIN ?# c ON a.guid = c.guid WHERE id = ?d";
+
+    private function fetch()
+    {
+        if (!$this->id)
+            return false;
+
+        switch (get_class($this))
+        {
+            case 'CreatureList':
+                return DB::Aowow()->select(self::$spawnQuery, 'creature',   'game_event_creature',   'pool_creature',   $this->id);
+            case 'GameObjectList':
+                return DB::Aowow()->select(self::$spawnQuery, 'gameobject', 'game_event_gameobject', 'pool_gameobject', $this->id);
+            default:
+                return false;
+        }
+    }
+
+    /*
+        todo (med): implement this alpha-map-check-virtual-map-transform-wahey!
+        note: map in tooltips is activated by either '#map' as anchor (will automatic open mapviewer, when clicking link) in the href or as parameterless rel-parameter e.g. rel="map" in the anchor
+    */
+    public function getSpawns($spawnInfo)
+    {
+        // SPAWNINFO_SHORT: true => only the most populated area and only coordinates
+        $data = [];
+
+        // $raw = $this->fetch();
+        // if (!$raw)
+            // return [];
+
+        /*
+        SPAWNINFO_FULL:
+            $data = array(
+                areaId => array(
+                    floorNo => array (
+                        posX      =>
+                        posY      =>
+                        respawn   =>
+                        phaseMask =>
+                        spawnMask =>
+                        eventId   =>
+                        poolId    =>
+                    )
+                )
+            )
+
+        SPAWNINFO_SHORT: [zoneId, [[x1, y1], [x2, y2], ..]] // only the most populated zone
+
+        SPAWNINFO_ZONES: [zoneId1, zoneId2, ..]             // only zones
+        */
+
+        return $data;
+    }
+}
+
+
 class Lang
 {
     public static $main;
@@ -321,8 +406,10 @@ class Lang
     public static $event;
     public static $item;
     public static $itemset;
-    public static $pet;
     public static $maps;
+    public static $npc;
+    public static $pet;
+    public static $quest;
     public static $spell;
     public static $talent;
     public static $title;
@@ -332,7 +419,7 @@ class Lang
 
     public static function load($loc)
     {
-        if (@(require 'localization/locale_'.$loc.'.php') !== 1)
+        if ((require 'localization/locale_'.$loc.'.php') !== 1)
             die('File for localization '.$loc.' not found.');
 
         foreach ($lang as $k => $v)
@@ -351,6 +438,46 @@ class Lang
             $tmp[] = '<span class="tip" onmouseover="Tooltip.showAtCursor(event, \''.self::$main['serversideHint'].'\', 0, 0, \'q\')" onmousemove="Tooltip.cursorUpdate(event)" onmouseout="Tooltip.hide()">'.self::$main['serverside'].'</span>';
 
         return $tmp;
+    }
+
+    public static function getLocks($lockId, $interactive = false)
+    {
+        $locks = [];
+        $lock = DB::Aowow()->selectRow('SELECT * FROM ?_lock WHERE id = ?d', $this->curTpl['lockid']);
+
+        for ($i = 1; $i <= 5; $i++)
+        {
+            $prop = $lock['lockproperties'.$i];
+            $rnk  = $lock['requiredskill'.$i];
+            $name = '';
+
+            if ($lock['type'.$i] == 1)                      // opened by item
+            {
+                $name = ItemList::getName($prop);
+                if (!$name)
+                    continue;
+
+                if ($interactive)
+                    $name = '<a class="q1" href="?item='.$prop.'">'.$name.'</a>';
+            }
+            else if ($lock['type'.$i] == 2)                 // opened by skill
+            {
+                if (in_array($prop, [6, 7, 15, 19]))        // dnd stuff
+                    continue;
+
+                $txt = DB::Aowow()->selectRow('SELECT * FROM ?_locktype WHERE id = ?d', $prop);         // todo (low): convert to static text
+                $name = Util::localizedString($txts, 'name');
+                if (!$name)
+                    continue;
+
+                if ($rnk > 0)
+                    $name .= ' ('.$rnk.')';
+            }
+
+            $locks[$lock['type'.$i] == 1 ? $i : -$i] = sprintf(Lang::$game['requires'], $name);
+        }
+
+        return $locks;
     }
 
     public static function getReputationLevelForPoints($pts)
@@ -441,9 +568,6 @@ class Lang
         if ($classMask == CLASS_MASK_ALL)                   // available to all classes
             return false;
 
-        if (!$classMask)                                    // no restrictions left
-            return false;
-
         $tmp = [];
         $i   = 1;
 
@@ -467,27 +591,24 @@ class Lang
         if ($raceMask == RACE_MASK_ALL)                     // available to all races (we don't display 'both factions')
             return false;
 
-        if (!$raceMask)                                     // no restrictions left (we don't display 'both factions')
-            return false;
-
         $tmp  = [];
         $side = 0;
         $i    = 1;
 
         if (!$raceMask)
-            return array('side' => 3, 'name' => self::$game['ra'][0]);
+            return array('side' => SIDE_BOTH,     'name' => self::$game['ra'][0]);
 
         if ($raceMask == RACE_MASK_HORDE)
-            return array('side' => 2, 'name' => self::$game['ra'][-2]);
+            return array('side' => SIDE_HORDE,    'name' => self::$game['ra'][-2]);
 
         if ($raceMask == RACE_MASK_ALLIANCE)
-            return array('side' => 1, 'name' => self::$game['ra'][-1]);
+            return array('side' => SIDE_ALLIANCE, 'name' => self::$game['ra'][-1]);
 
         if ($raceMask & RACE_MASK_HORDE)
-            $side |= 2;
+            $side |= SIDE_HORDE;
 
         if ($raceMask & RACE_MASK_ALLIANCE)
-            $side |= 1;
+            $side |= SIDE_ALLIANCE;
 
         while ($raceMask)
         {
@@ -505,34 +626,35 @@ class Lang
 
 class SmartyAoWoW extends Smarty
 {
-    private $config = [];
+    private $config    = [];
+    private $jsGlobals = [];
 
     public function __construct($config)
     {
         $cwd = str_replace("\\", "/", getcwd());
 
         $this->Smarty();
-        $this->config           = $config;
-        $this->template_dir     = $cwd.'/template/';
-        $this->compile_dir      = $cwd.'/cache/template/';
-        $this->config_dir       = $cwd.'/configs/';
-        $this->cache_dir        = $cwd.'/cache/';
-        $this->debugging        = $config['debug'];
-        $this->left_delimiter   = '{';
-        $this->right_delimiter  = '}';
-        $this->caching          = false;                    // Total Cache, this site does not work
         $this->assign('appName', $config['page']['name']);
         $this->assign('AOWOW_REVISION', AOWOW_REVISION);
-        $this->_tpl_vars['page'] = array(
-            'reqJS'      => [],                             // <[string]> path to required JSFile
-            'reqCSS'     => [],                             // <[string,string]> path to required CSSFile, IE condition
-            'title'      => null,                           // [string] page title
-            'tab'        => null,                           // [int] # of tab to highlight in the menu
-            'type'       => null,                           // [int] numCode for spell, npx, object, ect
-            'typeId'     => null,                           // [int] entry to display
-            'path'       => '[]',                           // [string] (js:array) path to preselect in the menu
-            'gStaticUrl' => substr('http://'.$_SERVER['SERVER_NAME'].strtr($_SERVER['SCRIPT_NAME'], ['index.php' => '']), 0, -1)
+        $this->config                 = $config;
+        $this->template_dir           = $cwd.'/template/';
+        $this->compile_dir            = $cwd.'/cache/template/';
+        $this->config_dir             = $cwd.'/configs/';
+        $this->cache_dir              = $cwd.'/cache/';
+        $this->debugging              = $config['debug'];
+        $this->left_delimiter         = '{';
+        $this->right_delimiter        = '}';
+        $this->caching                = false;              // Total Cache, this site does not work
+        $this->_tpl_vars['page']      = array(
+            'reqJS'  => [],                                 // <[string]> path to required JSFile
+            'reqCSS' => [],                                 // <[string,string]> path to required CSSFile, IE condition
+            'title'  => null,                               // [string] page title
+            'tab'    => null,                               // [int] # of tab to highlight in the menu
+            'type'   => null,                               // [int] numCode for spell, npc, object, ect
+            'typeId' => null,                               // [int] entry to display
+            'path'   => '[]'                                // [string] (js:array) path to preselect in the menu
         );
+        $this->_tpl_vars['jsGlobals'] = [];
     }
 
     // using Smarty::assign would overwrite every pair and result in undefined indizes
@@ -547,17 +669,138 @@ class SmartyAoWoW extends Smarty
 
     public function display($tpl)
     {
-        // since it's the same for every page, except index..
-        if ($this->_tpl_vars['query'][0] && !preg_match('/[^a-z]/i', $this->_tpl_vars['query'][0]))
+        $tv = &$this->_tpl_vars;
+        $_  = [];
+
+        if ($tv['page']['type'] && $tv['page']['typeId'])
         {
-            $ann = DB::Aowow()->Select('SELECT * FROM ?_announcements WHERE flags & 0x10 AND (page = ?s OR page = "*")', $this->_tpl_vars['query'][0]);
+            if ($article = DB::Aowow()->selectRow('SELECT id, article, quickInfo FROM ?_articles WHERE type = ?d AND typeId = ?d AND locale = ?d', $tv['page']['type'], $tv['page']['typeId'], User::$localeId))
+            {
+                $globals = DB::Aowow()->select('SELECT type, typeId FROM ?_article_items WHERE id = ?d', $article['id']);
+
+                 $tv['article']  = $article['article'];
+                @$tv['infoBox'] .= $article['quickInfo'];
+
+                foreach ($globals as $glob)
+                {
+                    if (!isset($this->jsGlobals[$glob['type']]))
+                        $this->jsGlobals[$glob['type']] = [];
+
+                    $this->jsGlobals[$glob['type']][] = $glob['typeId'];
+                }
+            }
+        }
+
+        // since it's the same for every page, except index..
+        if ($tv['query'][0] && !preg_match('/[^a-z]/i', $tv['query'][0]))
+        {
+            $ann = DB::Aowow()->Select('SELECT * FROM ?_announcements WHERE status = 1 AND (page = ?s OR page = "*")', $tv['query'][0]);
             foreach ($ann as $k => $v)
-                $ann[$k]['text'] = Util::localizedString($v, 'text');
+            {
+                if ($t = Util::localizedString($v, 'text'))
+                    $ann[$k]['text'] = Util::jsEscape($t);
+                else
+                    unset($ann[$k]);
+            }
 
             $this->_tpl_vars['announcements'] = $ann;
         }
 
+        $this->applyGlobals();
+
+        $this->_tpl_vars['mysql'] = DB::Aowow()->getStatistics();
+
         parent::display($tpl);
+    }
+
+    public function extendGlobalIds($type, $data)
+    {
+        if (!$type || !$data)
+            return false;
+
+        if (!isset($this->jsGlobals[$type]))
+            $this->jsGlobals[$type] = [];
+
+        if (is_array($data))
+            foreach ($data as $id)
+                $this->jsGlobals[$type][] = (int)$id;
+        else if (is_numeric($data))
+            $this->jsGlobals[$type][] = (int)$data;
+        else
+            return false;
+
+        return true;
+    }
+
+    public function extendGlobalData($type, $data)
+    {
+        $this->initJSGlobal($type);
+        $_ = &$this->_tpl_vars['jsGlobals'][$type][1];      // shorthand
+
+        foreach ($data as $id => $set)
+            if (!isset($_[$id]))
+                $_[$id] = $set;
+    }
+
+    private function initJSGlobal($type)
+    {
+        $jsg = &$this->_tpl_vars['jsGlobals'];              // shortcut
+
+        if (isset($jsg[$type]))
+            return;
+
+        switch ($type)
+        {                                                // [brickFile, [data]]
+            case TYPE_NPC:         $jsg[TYPE_NPC]         = ['creatures', []];    break;
+            case TYPE_OBJECT:      $jsg[TYPE_OBJECT]      = ['objects', []];      break;
+            case TYPE_ITEM:        $jsg[TYPE_ITEM]        = ['items', []];        break;
+            case TYPE_QUEST:       $jsg[TYPE_QUEST]       = ['quests', []];       break;
+            case TYPE_SPELL:       $jsg[TYPE_SPELL]       = ['spells', []];       break;
+            case TYPE_ZONE:        $jsg[TYPE_ZONE]        = ['zones', []];        break;
+            case TYPE_FACTION:     $jsg[TYPE_FACTION]     = ['factions', []];     break;
+            case TYPE_PET:         $jsg[TYPE_PET]         = ['pets', []];         break;
+            case TYPE_ACHIEVEMENT: $jsg[TYPE_ACHIEVEMENT] = ['achievements', []]; break;
+            case TYPE_TITLE:       $jsg[TYPE_TITLE]       = ['titles', []];       break;
+            case TYPE_WORLDEVENT:  $jsg[TYPE_WORLDEVENT]  = ['holidays', []];     break;
+            case TYPE_CLASS:       $jsg[TYPE_CLASS]       = ['classes', []];      break;
+            case TYPE_RACE:        $jsg[TYPE_RACE]        = ['races', []];        break;
+            case TYPE_SKILL:       $jsg[TYPE_SKILL]       = ['skills', []];       break;
+            case TYPE_CURRENCY:    $jsg[TYPE_CURRENCY]    = ['curencies', []];    break;
+        }
+    }
+
+    private function applyGlobals()
+    {
+        foreach ($this->jsGlobals as $type => $ids)
+        {
+            if (!$ids)
+                continue;
+
+            $this->initJSGlobal($type);
+
+            foreach ($ids as $k => $id)                     // filter already generated data, maybe we can save a lookup or two
+                if (isset($this->_tpl_vars['jsGlobals'][$type][$id]))
+                    unset($ids[$k]);
+
+            switch ($type)
+            {
+                case TYPE_NPC:         (new CreatureList(array(['ct.entry', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);   break;
+                case TYPE_OBJECT:      (new GameobjectList(array(['gt.entry', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF); break;
+                case TYPE_ITEM:        (new ItemList(array(['i.entry', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);        break;
+                case TYPE_QUEST:       (new QuestList(array(['qt.entry', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);      break;
+                case TYPE_SPELL:       (new SpellList(array(['s.id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);          break;
+                case TYPE_ZONE:        (new ZoneList(array(['z.id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);           break;
+                case TYPE_FACTION:     (new FactionList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);          break;
+                case TYPE_PET:         (new PetList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);              break;
+                case TYPE_ACHIEVEMENT: (new AchievementList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);      break;
+                case TYPE_TITLE:       (new TitleList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);            break;
+                case TYPE_WORLDEVENT:  (new WorldEventList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);       break;
+                case TYPE_CLASS:       (new CharClassList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);        break;
+                case TYPE_RACE:        (new CharRaceList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);         break;
+                case TYPE_SKILL:       (new SkillList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);            break;
+                case TYPE_CURRENCY:    (new CurrencyList(array(['id', $ids], 0)))->addGlobalsToJscript($this, GLOBALINFO_SELF);         break;
+            }
+        }
     }
 
     public function notFound($subject)
@@ -569,6 +812,7 @@ class SmartyAoWoW extends Smarty
         ));
 
         $this->assign('lang', Lang::$main);
+        $this->assign('mysql', DB::Aowow()->getStatistics());
 
         $this->display('404.tpl');
         exit();
@@ -592,7 +836,7 @@ class SmartyAoWoW extends Smarty
         $file = $this->cache_dir.'data/'.$key;
 
         $cacheData = time()." ".AOWOW_REVISION."\n";
-        $cacheData .= serialize($data);
+        $cacheData .= serialize(str_replace(["\n", "\t"], ['\n', '\t'], $data));
 
         if ($filter)
             $cacheData .= "\n".serialize($filter);
@@ -617,7 +861,7 @@ class SmartyAoWoW extends Smarty
         if ($expireTime <= time() || $rev < AOWOW_REVISION)
             return false;
 
-        $data = unserialize($cache[1]);
+        $data = str_replace(['\n', '\t'], ["\n", "\t"], unserialize($cache[1]));
         if (isset($cache[2]))
             $filter = unserialize($cache[2]);
 
@@ -726,6 +970,7 @@ class Util
     public static $dateFormatLong           = "Y/m/d H:i:s";
 
     public static $changeLevelString        = '<a href="javascript:;" onmousedown="return false" class="tip" style="color: white; cursor: pointer" onclick="$WH.g_staticTooltipLevelClick(this, null, 0)" onmouseover="$WH.Tooltip.showAtCursor(event, \'<span class=\\\'q2\\\'>\' + LANG.tooltip_changelevel + \'</span>\')" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()"><!--lvl-->%s</a>';
+    public static $setRatingLevelString     = '<a href="javascript:;" onmousedown="return false" class="tip" style="color: white; cursor: pointer" onclick="g_setRatingLevel(this, %s, %s, %s)" onmouseover="$WH.Tooltip.showAtCursor(event, \'<span class=\\\'q2\\\'>\' + LANG.tooltip_changelevel + \'</span>\')" onmousemove="$WH.Tooltip.cursorUpdate(event)" onmouseout="$WH.Tooltip.hide()">%s</a>';
 
     public static $filterResultString       = 'sprintf(%s, %s, %s) + LANG.dash + LANG.lvnote_tryfiltering.replace(\'<a>\', \'<a href="javascript:;" onclick="fi_toggle()">\')';
     public static $narrowResultString       = 'sprintf(%s, %s, %s) + LANG.dash + LANG.lvnote_trynarrowing';
@@ -1022,8 +1267,8 @@ class Util
         10 => 'Mod Threat',
         11 => 'Taunt',
         12 => 'Stun',
-        13 => 'Mod Damage Done',
-        14 => 'Mod Damage Taken',
+        13 => 'Mod Damage Done Flat',
+        14 => 'Mod Damage Taken Flat',
         15 => 'Damage Shield',
         16 => 'Mod Stealth',
         17 => 'Mod Stealth Detection',
@@ -1031,14 +1276,14 @@ class Util
         19 => 'Mod Invisibility Detection',
         20 => 'Mod Health Percent',
         21 => 'Mod Power Percent',
-        22 => 'Mod Resistance',
+        22 => 'Mod Resistance Flat',
         23 => 'Periodic Trigger Spell',
         24 => 'Periodic Energize',
         25 => 'Pacify',
         26 => 'Root',
         27 => 'Silence',
         28 => 'Reflect Spells',
-        29 => 'Mod Stat',
+        29 => 'Mod Stat Flat',
         30 => 'Mod Skill',
         31 => 'Mod Increase Speed',
         32 => 'Mod Increase Mounted Speed',
@@ -1062,13 +1307,13 @@ class Util
         50 => 'Mod Critical Healing Amount',
         51 => 'Mod Block Percent',
         52 => 'Mod Physical Crit Percent',
-        53 => 'Periodic Leech',
+        53 => 'Periodic Health Leech',
         54 => 'Mod Hit Chance',
         55 => 'Mod Spell Hit Chance',
         56 => 'Transform',
         57 => 'Mod Spell Crit Chance',
         58 => 'Mod Increase Swim Speed',
-        59 => 'Mod Damage Done Creature',
+        59 => 'Mod Damage Done Versus Creature',
         60 => 'Pacify Silence',
         61 => 'Mod Scale',
         62 => 'Periodic Health Funnel',
@@ -1082,21 +1327,21 @@ class Util
         70 => 'Extra Attacks',
         71 => 'Mod Spell Crit Chance School',
         72 => 'Mod Power Cost School Percent',
-        73 => 'Mod Power Cost School',
+        73 => 'Mod Power Cost School Flat',
         74 => 'Reflect Spells School',
         75 => 'Language',
         76 => 'Far Sight',
         77 => 'Mechanic Immunity',
         78 => 'Mounted',
-        79 => 'Mod Damage Percent Done',
-        80 => 'Mod Percent Stat',
+        79 => 'Mod Damage Done Percent',
+        80 => 'Mod Stat Percent',
         81 => 'Split Damage Percent',
         82 => 'Water Breathing',
-        83 => 'Mod Base Resistance',
+        83 => 'Mod Base Resistance Flat',
         84 => 'Mod Health Regeneration',
         85 => 'Mod Power Regeneration',
         86 => 'Channel Death Item',
-        87 => 'Mod Damage Percent Taken',
+        87 => 'Mod Damage Taken Percent',
         88 => 'Mod Health Regeneration Percent',
         89 => 'Periodic Damage Percent',
         90 => 'Mod Resist Chance',
@@ -1122,7 +1367,7 @@ class Util
         110 => 'Mod Power Regeneration Percent',
         111 => 'Add Caster Hit Trigger',
         112 => 'Override Class Scripts',
-        113 => 'Mod Ranged Damage Taken',
+        113 => 'Mod Ranged Damage Taken Flat',
         114 => 'Mod Ranged Damage Taken Percent',
         115 => 'Mod Healing',
         116 => 'Mod Regeneration During Combat',
@@ -1134,7 +1379,7 @@ class Util
         122 => 'Mod Offhand Damage Percent',
         123 => 'Mod Target Resistance',
         124 => 'Mod Ranged Attack Power',
-        125 => 'Mod Melee Damage Taken',
+        125 => 'Mod Melee Damage Taken Flat',
         126 => 'Mod Melee Damage Taken Percent',
         127 => 'Ranged Attack Power Attacker Bonus',
         128 => 'Possess Pet',
@@ -1144,7 +1389,7 @@ class Util
         132 => 'Mod Increase Energy Percent',
         133 => 'Mod Increase Health Percent',
         134 => 'Mod Mana Regeneration Interrupt',
-        135 => 'Mod Healing Done',
+        135 => 'Mod Healing Done Flat',
         136 => 'Mod Healing Done Percent',
         137 => 'Mod Total Stat Percentage',
         138 => 'Mod Melee Haste',
@@ -1179,7 +1424,7 @@ class Util
         167 => 'Mod Ranged Attack Power Percent',
         168 => 'Mod Damage Done Versus',
         169 => 'Mod Crit Percent Versus',
-        170 => 'Detect Amore',
+        170 => 'Change Model',
         171 => 'Mod Speed (not stacking)',
         172 => 'Mod Mounted Speed (not stacking)',
         173 => 'Unknown Aura',
@@ -1189,7 +1434,7 @@ class Util
         177 => 'AoE Charm',
         178 => 'Mod Debuff Resistance',
         179 => 'Mod Attacker Spell Crit Chance',
-        180 => 'Mod Flat Spell Damage Versus',
+        180 => 'Mod Spell Damage Versus',
         181 => 'Unknown Aura',
         182 => 'Mod Resistance Of Stat Percent',
         183 => 'Mod Critical Threat',
@@ -1214,7 +1459,7 @@ class Util
         202 => 'Ignore Combat Result',
         203 => 'Mod Attacker Melee Crit Damage',
         204 => 'Mod Attacker Ranged Crit Damage',
-        205 => 'Mod School Crit Dmg Taken',
+        205 => 'Mod School Crit Damage Taken',
         206 => 'Mod Increase Vehicle Flight Speed',
         207 => 'Mod Increase Mounted Flight Speed',
         208 => 'Mod Increase Flight Speed',
@@ -1230,7 +1475,7 @@ class Util
         218 => 'Haste Ranged',
         219 => 'Mod Mana Regeneration from Stat',
         220 => 'Mod Rating from Stat',
-        221 => 'Detaunt',
+        221 => 'Ignore Threat',
         222 => 'Unknown Aura',
         223 => 'Raid Proc from Charge',
         224 => 'Unknown Aura',
@@ -1280,12 +1525,12 @@ class Util
         268 => 'Mod Attack Power Of Stat Percent',
         269 => 'Mod Ignore Target Resist',
         270 => 'Mod Ability Ignore Target Resist',
-        271 => 'Mod Damage Percent Taken Form Caster',
+        271 => 'Mod Damage Taken Percent From Caster',
         272 => 'Ignore Melee Reset',
         273 => 'X Ray',
         274 => 'Ability Consume No Ammo',
         275 => 'Mod Ignore Shapeshift',
-        276 => 'Mod Damage Percent Mechanic',
+        276 => 'Mod Mechanic Damage Done Percent',
         277 => 'Mod Max Affected Targets',
         278 => 'Mod Disarm Ranged',
         279 => 'Initialize Images',
@@ -1329,10 +1574,10 @@ class Util
     );
 
     public static $bgImagePath              = array (
-        'tiny'   => 'style="background-image: url(images/icons/tiny/%s.gif)"',
-        'small'  => 'style="background-image: url(images/icons/small/%s.jpg)"',
-        'medium' => 'style="background-image: url(images/icons/medium/%s.jpg)"',
-        'large'  => 'style="background-image: url(images/icons/large/%s.jpg)"',
+        'tiny'   => 'style="background-image: url(%s/images/icons/tiny/%s.gif)"',
+        'small'  => 'style="background-image: url(%s/images/icons/small/%s.jpg)"',
+        'medium' => 'style="background-image: url(%s/images/icons/medium/%s.jpg)"',
+        'large'  => 'style="background-image: url(%s/images/icons/large/%s.jpg)"',
     );
 
     private static $execTime = 0.0;
@@ -1499,9 +1744,7 @@ class Util
     {
         $_ = decBin($val);
         while (fMod(strLen($_), 4))                         // in 4-blocks
-        {
             $_ = '0'.$_;
-        }
 
         return 'b'.strToUpper($_);
     }
@@ -1638,17 +1881,20 @@ class Util
         $jsonStats = [];
         for ($h = 1; $h <= 3; $h++)
         {
+            $obj = $enchant['object'.$h];
+            $val = $enchant['amount'.$h];
+
             if (isset($amountOverride))                     // itemSuffixes have dynamic amount
-                $enchant['amount'.$h] = $amountOverride;
+                $val = $amountOverride;
 
             switch ($enchant['type'.$h])
             {
                 case 2:
-                    @$jsonStats[ITEM_MOD_WEAPON_DMG] += $enchant['amount'.$h];
+                    @$jsonStats[ITEM_MOD_WEAPON_DMG] += $val;
                     break;
                 case 3:
                 case 7:
-                    $spl   = new SpellList(array(['s.id', (int)$enchant['object'.$h]]));
+                    $spl   = new SpellList(array(['s.id', (int)$obj]));
                     $gains = $spl->getStatGain();
 
                     foreach ($gains as $gain)
@@ -1656,33 +1902,36 @@ class Util
                             @$jsonStats[$k] += $v;
                     break;
                 case 4:
-                    switch ($enchant['object'.$h])
+                    switch ($obj)
                     {
                         case 0:                             // Physical
-                            @$jsonStats[ITEM_MOD_ARMOR] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_ARMOR] += $val;
                             break;
                         case 1:                             // Holy
-                            @$jsonStats[ITEM_MOD_HOLY_RESISTANCE] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_HOLY_RESISTANCE] += $val;
                             break;
                         case 2:                             // Fire
-                            @$jsonStats[ITEM_MOD_FIRE_RESISTANCE] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_FIRE_RESISTANCE] += $val;
                             break;
                         case 3:                             // Nature
-                            @$jsonStats[ITEM_MOD_NATURE_RESISTANCE] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_NATURE_RESISTANCE] += $val;
                             break;
                         case 4:                             // Frost
-                            @$jsonStats[ITEM_MOD_FROST_RESISTANCE] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_FROST_RESISTANCE] += $val;
                             break;
                         case 5:                             // Shadow
-                            @$jsonStats[ITEM_MOD_SHADOW_RESISTANCE] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_SHADOW_RESISTANCE] += $val;
                             break;
                         case 6:                             // Arcane
-                            @$jsonStats[ITEM_MOD_ARCANE_RESISTANCE] += $enchant['amount'.$h];
+                            @$jsonStats[ITEM_MOD_ARCANE_RESISTANCE] += $val;
                             break;
                     }
                     break;
                 case 5:
-                    @$jsonStats[$enchant['object'.$h]] += $enchant['amount'.$h];
+                    if ($obj == ITEM_MOD_ATTACK_POWER)
+                        @$jsonStats[ITEM_MOD_RANGED_ATTACK_POWER] += $val;
+
+                    @$jsonStats[$obj] += $val;
                     break;
             }
         }

@@ -51,13 +51,13 @@ if (!$smarty->loadCache($cacheKey, $pageData))
         'file'     => 'event',
         'data'     => $events->getListviewData(),
         'deps'     => $deps,
-        'calendar' => false,                                // todo: fix it Felix!
+        'calendar' => false,                                // todo (med): fix it Felix!
         'params'   => array(
-            'tabs'   => '$myTabs'
+            // 'tabs'   => '$myTabs'
         )
     );
 
-    $events->addGlobalsToJScript($pageData);
+    $events->addGlobalsToJScript($smarty);
 
     $smarty->saveCache($cacheKey, $pageData);
 }
@@ -86,7 +86,6 @@ $page = array(
 
 $smarty->updatePageVars($page);
 $smarty->assign('lang', Lang::$main);
-$smarty->assign('mysql', DB::Aowow()->getStatistics());
 $smarty->assign('lvData', $pageData);
 $smarty->display('generic-no-filter.tpl');
 

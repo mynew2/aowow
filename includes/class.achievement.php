@@ -7,11 +7,13 @@ class AchievementList extends BaseType
 {
     use listviewHelper;
 
-    public    $criteria   = [];
-    public    $tooltip    = [];
+    public static $type       = TYPE_ACHIEVEMENT;
 
-    protected $setupQuery = 'SELECT *, id AS ARRAY_KEY FROM ?_achievement WHERE [filter] [cond] GROUP BY Id ORDER BY `orderInGroup` ASC';
-    protected $matchQuery = 'SELECT COUNT(1) FROM ?_achievement WHERE [filter] [cond]';
+    public        $criteria   = [];
+    public        $tooltip    = [];
+
+    protected     $setupQuery = 'SELECT *, id AS ARRAY_KEY FROM ?_achievement WHERE [filter] [cond] GROUP BY Id ORDER BY `orderInGroup` ASC';
+    protected     $matchQuery = 'SELECT COUNT(1) FROM ?_achievement WHERE [filter] [cond]';
 
     public function __construct($conditions, $applyFilter = false)
     {
@@ -24,56 +26,42 @@ class AchievementList extends BaseType
                 $this->templates[$this->id]['iconString'] = 'INV_Misc_QuestionMark';
 
             //"rewards":[[11,137],[3,138]]   [type, typeId]
+            $rewards = [TYPE_ITEM => [], TYPE_TITLE => []];
             if (!empty($this->curTpl['rewardIds']))
             {
-                $rewards = [];
                 $rewIds  = explode(" ", $this->curTpl['rewardIds']);
                 foreach ($rewIds as $rewId)
-                    $rewards[] = ($rewId > 0 ? [TYPE_ITEM => $rewId] : ($rewId < 0 ? [TYPE_TITLE => -$rewId] : NULL));
-
-                $this->templates[$this->id]['rewards'] = $rewards;
+                {
+                    if ($rewId > 0)
+                        $rewards[TYPE_ITEM][] = $rewId;
+                    else if ($rewId < 0)
+                        $rewards[TYPE_TITLE][] = -$rewId;
+                }
             }
+            $this->templates[$this->id]['rewards'] = $rewards;
         }
 
         $this->reset();                                     // restore 'iterator'
     }
 
-    public function addRewardsToJScript(&$refs)
+    public function addGlobalsToJscript(&$template, $addMask = GLOBALINFO_ANY)
     {
-        // collect Ids to execute in single query
-        $lookup = [];
-
         while ($this->iterate())
         {
-            $rewards = explode(" ", $this->curTpl['rewardIds']);
+            if ($addMask & GLOBALINFO_SELF)
+                $template->extendGlobalData(self::$type, [$this->id => array(
+                    'icon' => $this->curTpl['iconString'],
+                    'name' => Util::localizedString($this->curTpl, 'name')
+                )]);
 
-            foreach ($rewards as $reward)
+            if ($addMask & GLOBALINFO_REWARDS)
             {
-                if ($reward > 0)
-                    $lookup['item'][] = $reward;
-                else if ($reward < 0)
-                    $lookup['title'][] = -$reward;
+                foreach ($this->curTpl['rewards'][TYPE_ITEM] as $_)
+                    $template->extendGlobalIds(TYPE_ITEM, $_);
+
+                foreach ($this->curTpl['rewards'][TYPE_TITLE] as $_)
+                    $template->extendGlobalIds(TYPE_TITLE, $_);
             }
-        }
-
-        if (isset($lookup['item']))
-            (new ItemList(array(['i.entry', array_unique($lookup['item'])])))->addGlobalsToJscript($refs);
-
-        if (isset($lookup['title']))
-            (new TitleList(array(['id', array_unique($lookup['title'])])))->addGlobalsToJscript($refs);
-    }
-
-    public function addGlobalsToJscript(&$refs)
-    {
-        if (!isset($refs['gAchievements']))
-            $refs['gAchievements'] = [];
-
-        while ($this->iterate())
-        {
-            $refs['gAchievements'][$this->id] = array(
-                'icon' => $this->curTpl['iconString'],
-                'name' => Util::localizedString($this->curTpl, 'name')
-            );
         }
     }
 
@@ -97,18 +85,15 @@ class AchievementList extends BaseType
             if  ($this->curTpl['flags'] & ACHIEVEMENT_FLAG_COUNTER && $this->curTpl['parentCat'] != 1)
                 $data[$this->id]['type'] = 1;
 
-            if (!empty($this->curTpl['rewards']))
-            {
-                $rewards = [];
+            $rewards = [];
+            foreach ($this->curTpl['rewards'] as $type => $rIds)
+                foreach ($rIds as $rId)
+                    $rewards[] = '['.$type.','.$rId.']';
 
-                foreach ($this->curTpl['rewards'] as $pair)
-                    $rewards[] = '['.key($pair).','.current($pair).']';
-
+            if ($rewards)
                 $data[$this->id]['rewards'] = '['.implode(',', $rewards).']';
-            }
-            else if (!empty ($this->curTpl['reward']))
+            else if (!empty($this->curTpl['reward']))
                 $data[$this->id]['reward'] = Util::localizedString($this->curTpl, 'reward');
-
         }
 
         return $data;
@@ -212,9 +197,9 @@ class AchievementList extends BaseType
             }
 
             if ($crt['complete_flags'] & ACHIEVEMENT_CRITERIA_FLAG_MONEY_COUNTER)
-                $criteria .= '- '.Util::jsEscape(htmlspecialchars($crtName)).' <span class="moneygold">'.number_format($crt['value2' ] / 10000).'</span><br />';
+                $criteria .= '- '.htmlspecialchars($crtName).' <span class="moneygold">'.number_format($crt['value2' ] / 10000).'</span><br />';
             else
-                $criteria .= '- '.Util::jsEscape(htmlspecialchars($crtName)).'<br />';
+                $criteria .= '- '.htmlspecialchars($crtName).'<br />';
 
             if (++$i == round(count($rows)/2))
                 $criteria .= '</small></td><th class="q0" style="white-space: nowrap; text-align: left"><small>';

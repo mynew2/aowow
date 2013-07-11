@@ -12,6 +12,7 @@ if (!defined('AOWOW_REVISION'))
 $lang = array(
     // page variables
     'main' => array(
+        'name'          => "Name",
         'link'          => "Link",
         'signIn'        => "Anmelden",
         'jsError'       => "Stelle bitte sicher, dass JavaScript aktiviert ist.",
@@ -21,7 +22,6 @@ $lang = array(
         'timeSQL'       => "Zeit für MySQL-Queries",
         'noJScript'     => "<b>Diese Seite macht ausgiebigen Gebrauch von JavaScript.</b><br />Bitte <a href=\"https://www.google.com/support/adsense/bin/answer.py?answer=12654\" target=\"_blank\">aktiviert JavaScript</a> in Eurem Browser.",
         'profiles'      => "Deine Charaktere",
-        'links'         => "Links",
         'pageNotFound'  => "Diese|Dieser|Dieses %s existiert nicht.",        // todo: dämliche Fälle...
         'gender'        => "Geschlecht",
         'sex'           => [null, 'Mann', 'Frau'],
@@ -70,11 +70,16 @@ $lang = array(
         'refineSearch'  => "Tipp: Präzisiere deine Suche mit Durchsuchen einer <a href=\"javascript:;\" id=\"fi_subcat\">Unterkategorie</a>.",
 
         // infobox
-        'name'          => "Name",
+        'unavailable'   => "Nicht für Spieler verfügbar",
         'disabled'      => "Deaktiviert",
         'disabledHint'  => "Kann nicht erhalten oder abgeschlossen werden.",
         'serverside'    => "Serverseitig",
-        'serversideHint' => "Diese Informationen sind nicht im Client enthalten und wurden durch Sniffing zusammengetragen und/oder erraten.",
+        'serversideHint' => "Diese Informationen sind nicht im Client enthalten und wurden gesnifft und/oder erraten.",
+
+        // red buttons
+        'links'         => "Links",
+        'compare'       => "Vergleichen",
+        'view3D'        => "3D-Ansicht"
     ),
     'search' => array(
         'search'        => "Suche",
@@ -83,6 +88,8 @@ $lang = array(
         'tryAgain'      => "Bitte versucht es mit anderen Suchbegriffen oder überprüft deren Schreibweise.",
     ),
     'game' => array(
+        'achievement'   => "Erfolg",
+        'achievements'  => "Erfolge",
         'class'         => "Klasse",
         'classes'       => "Klassen",
         'currency'      => "Währung",
@@ -90,6 +97,8 @@ $lang = array(
         'difficulty'    => "Modus",
         'dispelType'    => "Bannart",
         'duration'      => "Dauer",
+        'gameObject'    => "Objekt",
+        'gameObjects'   => "Objekte",
         'glyphType'     => "Glyphenart",
         'race'          => "Volk",
         'races'         => "Völker",
@@ -105,6 +114,7 @@ $lang = array(
         'mechAbbr'      => "Ausw.",
         'pet'           => "Begleiter",
         'pets'          => "Begleiter",
+        'petCalc'       => "Begleiterrechner",
         'requires'      => "Benötigt %s",
         'requires2'     => "Benötigt",
         'reqLevel'      => "Benötigt Stufe %s",
@@ -115,6 +125,9 @@ $lang = array(
         'spell'         => "Zauber",
         'spells'        => "Zauber",
         'valueDelim'    => " - ",                           // " bis "
+        'zone'          => "Zone",
+        'zones'         => "Gebiete",
+        'expansions'    => array("Classic", "The Burning Crusade", "Wrath of the Lich King"),
         'stats'         => array("Stärke", "Beweglichkeit", "Ausdauer", "Intelligenz", "Willenskraft"),
         'languages'     => array(
             1 => "Orcisch",     2 => "Darnassisch",     3 => "Taurisch",    6 => "Zwergisch",       7 => "Gemeinsprache",   8 => "Dämonisch",       9 => "Titanisch",       10 => "Thalassisch",
@@ -138,19 +151,20 @@ $lang = array(
             "Verstohlenheit",       "Mondkingestalt",               "Geist der Erlösung"
         ),
         'me'            => array(
-            null,               "Bezaubert",            "Desorientiert",            "Entwaffnet",               "Abgelenkt",            "Flüchtend",            "Ergriffen",            "Unbeweglich",
-            "Befriedet",        "Schweigend",           "Schlafend",                "Verlangsamt",              "Betäubt",              "Eingefroren",          "Handlungsunfähig",     "Blutend",
-            "Heilung",          "Verwandelt",           "Verbannt",                 "Abgeschirmt",              "Gefesselt",            "Reitend",              "Verführt",             "Vertrieben",
-            "Entsetzt",         "Unverwundbar",         "Unterbrochen",             "Benommen",                 "Entdeckung",           "Unverwundbar",         "Kopfnuss",             "Wütend"
+            null,                       "Bezaubert",                "Desorientiert",            "Entwaffnet",               "Abgelenkt",                "Flüchtend",                "Ergriffen",                "Unbeweglich",
+            "Befriedet",                "Schweigend",               "Schlafend",                "Verlangsamt",              "Betäubt",                  "Eingefroren",              "Handlungsunfähig",         "Blutend",
+            "Heilung",                  "Verwandelt",               "Verbannt",                 "Abgeschirmt",              "Gefesselt",                "Reitend",                  "Verführt",                 "Vertrieben",
+            "Entsetzt",                 "Unverwundbar",             "Unterbrochen",             "Benommen",                 "Entdeckung",               "Unverwundbar",             "Kopfnuss",                 "Wütend"
         ),
         'ct'            => array(
-            null,                   "Wildtier",                     "Drachkin",                     "Dämon",                        "Elementar",
-            "Riese",                "Untoter",                      "Humanoid",                     "Tier",                         "Mechanisch",
-            "Nicht kategorisiert",  "Totem",                        "Haustier",                     "Gas Wolke"
+            "Nicht kategorisiert",      "Wildtier",                 "Drachkin",                 "Dämon",                    "Elementar",                "Riese",                    "Untoter",                  "Humanoid",
+            "Tier",                     "Mechanisch",               "Nicht spezifiziert",       "Totem",                    "Haustier",                 "Gas Wolke"
         ),
-        'professions'   => array(
-            171 => "Alchemie",          164 => "Schmiedekunst",             333 => "Verzauberkunst",        202 => "Ingenieurskunst",       773 => "Inschriftenkunde",      755 => "Juwelenschleifen",
-            165 => "Lederverarbeitung", 186 => "Bergbau",                   197 => "Schneiderei",           185 => "Kochkunst",             129 => "Erste Hilfe",           356 => "Angeln"
+        'fa'            => array(
+            1 => "Wolf",                2 => "Katze",               3 => "Spinne",              4 => "Bär",                 5 => "Eber",                6 => "Krokilisk",           7 => "Aasvogel",            8 => "Krebs",
+            9 => "Gorilla",             11 => "Raptor",             12 => "Weitschreiter",      20 => "Skorpid",            21 => "Schildkröte",        24 => "Fledermaus",         25 => "Hyäne",              26 => "Raubvogel",
+            27 => "Windnatter",         30 => "Drachenfalke",       31 => "Felshetzer",         32 => "Sphärenjäger",       33 => "Sporensegler",       34 => "Netherrochen",       35 => "Schlange",           37 => "Motte",
+            38 => "Schimäre",           39 => "Teufelssaurier",     41 => "Silithid",           42 => "Wurm",               43 => "Rhinozeros",         44 => "Wespe",              45 => "Kernhund",           46 => "Geisterbestie"
         ),
         'pvpRank'       => array(
             null,                                       "Gefreiter / Späher",                   "Fußknecht / Grunzer",
@@ -210,10 +224,11 @@ $lang = array(
     'event' => array(
         'category'      => array("Nicht kategorisiert", "Feiertage", "Wiederkehrend", "Spieler vs. Spieler")
     ),
+    'npc'   => array(
+        'rank'          => ['Normal', 'Elite', 'Rar Elite', 'Boss', 'Rar']
+    ),
     'achievement' => array(
-        'achievements'  => "Erfolge",
         'criteria'      => "Kriterien",
-        'achievement'   => "Erfolg",
         'points'        => "Punkte",
         'series'        => "Reihe",
         'outOf'         => "von",
@@ -249,8 +264,17 @@ $lang = array(
         'CosmicMap'     => "Kosmische Karte",
     ),
     'zone' => array(
-        'zone'          => "Zone",
-        'zonePartOf'    => "Diese Zone ist Teil der Zone",
+        // 'zone'          => "Zone",
+        // 'zonePartOf'    => "Diese Zone ist Teil der Zone",
+        'cat'           => array(
+            "Östliche Königreiche",     "Kalimdor",                 "Dungeons",                 "Schlachtzüge",             "Unbenutzt",                null,
+            "Schlachtfelder",           null,                       "Scherbenwelt",             "Arenen",                   "Nordend"
+        )
+    ),
+    'quest' => array(
+        'level'         => 'Stufe %s',
+        'daily'         => 'Täglich',
+        'requirements'  => 'Anforderungen'
     ),
     'title' => array(
         'cat'           => array(
@@ -263,11 +287,19 @@ $lang = array(
         )
     ),
     'pet'      => array(
-        'cat'           => array(
-            'Wildheit', 'Hartnäckigkeit', 'Gerissenheit'
-        )
+        'exotic'        => "Exotisch",
+        'cat'           => ["Wildheit", "Hartnäckigkeit", "Gerissenheit"]
     ),
     'itemset' => array(
+        '_desc'         => "<b>%s</b> ist das <b>%s</b>. Es enthält %s Teile.",
+        '_descTagless'  => "<b>%s</b> ist ein Ausrüstungsset, das %s Teile enthält.",
+        '_setBonuses'   => "Setboni",
+        '_conveyBonus'  => "Das Tragen mehrerer Gegenstände aus diesem Set gewährt Eurem Charakter Boni.",
+        '_pieces'       => "Teile",
+        '_unavailable'  => "Dieses Ausrüstungsset ist nicht für Spieler verfügbar.",
+        '_type'         => "Art",
+        '_tag'          => "Tag",
+
         'notes'         => array(
             null,                                   "Dungeon-Set 1",                            "Dungeon-Set 2",                            "Tier 1 Raid-Set",
             "Tier 2 Raid-Set",                      "Tier 3 Raid-Set",                          "Level 60 PvP-Set (Rar)",                   "Level 60 PvP-Set (Rar,  alt)",
@@ -279,7 +311,7 @@ $lang = array(
             "Arena-Set Saison 7",                   "Tier 10 Raid-Set",                     "Arena-Set Saison 8"
         ),
         'types'         => array(
-            null,               "Stoff",                "Leder",                "Schwere R\u00fcstung",     "Platte",                   "Dolch",                "Ring",
+            null,               "Stoff",                "Leder",                "Schwere Rüstung",          "Platte",                   "Dolch",                "Ring",
             "Faustwaffe",       "Einhandaxt",           "Einhandstreitkolben",  "Einhandschwert",           "Schmuck",                  "Amulett"
         )
     ),
@@ -390,8 +422,8 @@ $lang = array(
         )
     ),
     'item' => array(
-        'armor'         => "Rüstung",
-        'block'         => "Blocken",
+        'armor'         => "%s Rüstung",
+        'block'         => "%s Blocken",
         'charges'       => "Aufladungen",
         'expend'        => "Verbrauchen",
         'locked'        => "Verschlossen",
